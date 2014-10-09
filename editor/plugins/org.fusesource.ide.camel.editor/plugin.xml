@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+   <extension-point id="org.fusesource.ide.editor.paletteContributor" name="Fuse Camel Editor Palette Contributor" schema="schema/org.fusesource.ide.editor.paletteContributor.exsd"/>
    <extension
          point="org.eclipse.ui.editors">
       <editor
@@ -100,7 +101,13 @@
                afterTab="DocumentationTab"
                category="sample"
                id="DocumentationTab"
-               label="Documentation"/> 
+               label="Documentation"/>
+         <propertyTab
+               afterTab="DetailsTab"
+               category="sample"
+               id="FileBindingTab"
+               label="File Binding">
+         </propertyTab> 
       </propertyTabs>
    </extension>
    <extension
@@ -117,6 +124,13 @@
             <input
                   type="org.fusesource.ide.camel.editor.parts.tree.AbstractNodeTreeEditPart">
             </input>
+         </propertySection>
+         <propertySection
+               afterSection="org.fusesource.ide.camel.editor.propertysheet.DetailsSection"
+               class="org.fusesource.ide.camel.editor.propertysheet.FileBindingSection"
+               filter="org.fusesource.ide.camel.editor.propertysheet.FileConnectorFilter"
+               id="org.fusesource.ide.camel.editor.propertysheet.FileBindingSection"
+               tab="FileBindingTab">
          </propertySection>
 
          <propertySection
@@ -263,5 +277,14 @@
             </instanceof>
          </enabledWhen>
       </page>
+   </extension>
+   <extension
+         point="org.fusesource.ide.editor.paletteContributor">
+      <PaletteContribution
+            class="org.fusesource.ide.camel.editor.provider.FileConnectorContribution">
+      </PaletteContribution>
+      <PaletteContribution
+            class="org.fusesource.ide.camel.editor.provider.SAPConnectorContribution">
+      </PaletteContribution>
    </extension>
 </plugin>

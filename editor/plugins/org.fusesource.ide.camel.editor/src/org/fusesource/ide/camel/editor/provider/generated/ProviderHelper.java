@@ -222,5 +222,5 @@ public class ProviderHelper {
         imageProvider.addIconsForClass(new When());
         imageProvider.addIconsForClass(new WireTap());
     }
-
 }
+

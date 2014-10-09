@@ -190,5 +190,5 @@ public class AddNodeMenuFactory extends AbstractAddNodeMenuFactory {
         addMenuItem(menu, Messages.paletteThreadsTitle, Messages.paletteThreadsDescription, Threads.class);
         addMenuItem(menu, Messages.paletteValidateTitle, Messages.paletteValidateDescription, Validate.class);
     }
-
 }
+

@@ -98,6 +98,13 @@ public class CreateFigureFeature<E> extends AbstractCreateFeature implements Pal
 	}
 
 	/**
+     * @return the clazz
+     */
+    public Class<E> getClazz() {
+        return this.clazz;
+    }
+	
+	/**
 	 * Returns the singleton exemplar node we can use to access things like icons and category names etc
 	 */
 	protected AbstractNode getExemplar() {

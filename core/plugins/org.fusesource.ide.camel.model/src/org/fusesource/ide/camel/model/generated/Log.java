@@ -270,5 +270,5 @@ public class Log extends AbstractNode {
             throw new IllegalArgumentException("ProcessorDefinition not an instanceof LogDefinition. Was " + processor.getClass().getName());
         }
     }
-
 }
+

@@ -238,5 +238,5 @@ public class Bean extends AbstractNode {
             throw new IllegalArgumentException("ProcessorDefinition not an instanceof BeanDefinition. Was " + processor.getClass().getName());
         }
     }
-
 }
+

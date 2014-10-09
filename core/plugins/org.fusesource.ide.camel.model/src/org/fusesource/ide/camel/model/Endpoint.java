@@ -131,7 +131,7 @@ public class Endpoint extends AbstractNode {
 
 	@Override
 	public String getCategoryName() {
-		return "Endpoints";
+		return "Connectors";
 	}
 
 	/*
@@ -241,5 +241,15 @@ public class Endpoint extends AbstractNode {
 		return getSourceConnections().isEmpty() && !getTargetConnections().isEmpty();
 	}
 
-
+	/**
+	 * this method is meant to be overridden by subclasses to build the uri attribute for
+	 * the endpoint out of the attributes the subclass knows about
+	 * 
+	 * the default implementation of Endpoint is to return the current URI
+	 * 
+	 * @return
+	 */
+	public String buildUri() {
+	    return this.uri;
+	}
 }

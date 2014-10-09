@@ -145,5 +145,5 @@ public class Process extends AbstractNode {
             throw new IllegalArgumentException("ProcessorDefinition not an instanceof ProcessDefinition. Was " + processor.getClass().getName());
         }
     }
-
 }
+

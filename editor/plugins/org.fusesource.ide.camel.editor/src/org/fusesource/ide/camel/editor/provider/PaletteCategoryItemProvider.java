@@ -18,7 +18,7 @@ import org.fusesource.ide.camel.editor.Activator;
  */
 public interface PaletteCategoryItemProvider {
 	static enum CATEGORY_TYPE {
-		ENDPOINTS, ROUTING, CONTROL_FLOW, TRANSFORMATION, MISCELLANEOUS, NONE;
+		CONNECTORS, ROUTING, CONTROL_FLOW, TRANSFORMATION, MISCELLANEOUS, NONE;
 
 		public static CATEGORY_TYPE getCategoryType(String name) {
 			if (name != null) {
