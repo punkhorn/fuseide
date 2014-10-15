@@ -71,7 +71,7 @@ public class Log extends AbstractNode {
 
     @Override
     public String getCategoryName() {
-        return "Endpoints";
+        return "Connectors";
     }
 
     /**
@@ -270,5 +270,5 @@ public class Log extends AbstractNode {
             throw new IllegalArgumentException("ProcessorDefinition not an instanceof LogDefinition. Was " + processor.getClass().getName());
         }
     }
-}
 
+}

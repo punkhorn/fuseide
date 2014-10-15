@@ -31,11 +31,11 @@ public interface ICustomPaletteEntry {
     
     /**
     * @param fp the feature provider
-    * @return a new create features that can be used for creating a new
+    * @return a new create feature that can be used for creating a new
     * component or implementation of the types supported by this
     * extension; must not be null.
     */
-    public ICreateFeature[] newCreateFeatures(IFeatureProvider fp);
+    public ICreateFeature newCreateFeature(IFeatureProvider fp);
     
     /**
     * @param object the model object.
@@ -44,10 +44,9 @@ public interface ICustomPaletteEntry {
     public IImageDecorator getImageDecorator(Object object);
     
     /**
-    * @param object the model object.
     * @return the display text for the object type.
     */
-    public String getTypeName(Object object);
+    public String getTypeName();
     
     /**
     * @param type the type

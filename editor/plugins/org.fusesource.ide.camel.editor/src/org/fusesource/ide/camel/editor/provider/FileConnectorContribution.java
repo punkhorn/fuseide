@@ -42,14 +42,13 @@ public class FileConnectorContribution implements ICustomPaletteEntry {
         return CATEGORY_TYPE.CONNECTORS;
     }
 
-    /* (non-Javadoc)
-     * @see org.fusesource.ide.camel.editor.provider.ICustomPaletteEntry#newCreateFeatures(org.eclipse.graphiti.features.IFeatureProvider)
+    /*
+     * (non-Javadoc)
+     * @see org.fusesource.ide.camel.editor.provider.ICustomPaletteEntry#newCreateFeature(org.eclipse.graphiti.features.IFeatureProvider)
      */
     @Override
-    public ICreateFeature[] newCreateFeatures(IFeatureProvider fp) {
-        return new ICreateFeature[] {
-                new CreateEndpointFigureFeature(fp, "Filesystem", "Enables you to poll a folder or to write into files...", new Endpoint("file:"))
-        };
+    public ICreateFeature newCreateFeature(IFeatureProvider fp) {
+        return new CreateEndpointFigureFeature(fp, "Filesystem", "Enables you to poll a folder or to write into files...", new Endpoint("file:"));
     }
 
     /* (non-Javadoc)
@@ -61,10 +60,10 @@ public class FileConnectorContribution implements ICustomPaletteEntry {
     }
 
     /* (non-Javadoc)
-     * @see org.fusesource.ide.camel.editor.provider.ICustomPaletteEntry#getTypeName(java.lang.Object)
+     * @see org.fusesource.ide.camel.editor.provider.ICustomPaletteEntry#getTypeName()
      */
     @Override
-    public String getTypeName(Object object) {
+    public String getTypeName() {
         return "fileEndpoint";
     }
 

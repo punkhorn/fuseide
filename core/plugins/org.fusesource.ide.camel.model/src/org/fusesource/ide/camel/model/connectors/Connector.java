@@ -12,6 +12,7 @@ package org.fusesource.ide.camel.model.connectors;
 
 import java.util.ArrayList;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -29,7 +30,7 @@ public class Connector {
 	/**
 	 * @return the id
 	 */
-	@XmlElement(name = "id")
+	@XmlAttribute(name = "id")
 	public String getId() {
 		return this.id;
 	}

@@ -11,6 +11,9 @@
 
 package org.fusesource.ide.camel.editor.provider;
 
+import java.net.URL;
+import java.util.Enumeration;
+
 import org.eclipse.graphiti.ui.platform.AbstractImageProvider;
 import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.editor.provider.generated.ProviderHelper;
@@ -79,8 +82,19 @@ public class ImageProvider extends AbstractImageProvider {
 
 		addIconsForClass(new Route(), "route16.png", "route.png");
 
-		// lets add some custom images
-		addIconCustomImages("endpointDrools.png", "endpointQueue.png", "endpointFile.png", "endpointFolder.png", "endpointTimer.png", "endpointRepository.png");
+		// add all images from the activator too
+        String prefix = "/icons/";
+        Enumeration<URL> enu = Activator.getDefault().getBundle().findEntries(prefix, "*", true);
+        while (enu.hasMoreElements()) {
+            URL u = enu.nextElement();
+            String file = u.getFile();
+            String fileName = file;
+            if (!file.startsWith(prefix)) {
+                Activator.getLogger().warning("Warning: image: " + fileName + " does not start with prefix: " + prefix);
+            }
+            fileName = fileName.substring(prefix.length());
+            addIconCustomImages(fileName);
+        }
 	}
 
 	private void addIconCustomImages(String... iconNames) {

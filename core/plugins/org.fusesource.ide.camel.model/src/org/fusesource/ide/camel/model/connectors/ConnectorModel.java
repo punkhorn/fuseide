@@ -17,7 +17,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.fusesource.ide.camel.model.Activator;
@@ -49,7 +48,6 @@ public class ConnectorModel {
 	/**
 	 * @return the supportedConnectors
 	 */
-	@XmlElementWrapper(name = "connectors")
 	@XmlElement(name = "connector")
 	public ArrayList<Connector> getSupportedConnectors() {
 		return this.supportedConnectors;
@@ -71,7 +69,7 @@ public class ConnectorModel {
 	public static ConnectorModel getConnectorFactoryInstance(InputStream stream, String camelVersion) {
 		try {
 			// create JAXB context and instantiate marshaller
-		    JAXBContext context = JAXBContext.newInstance(ConnectorModel.class);
+		    JAXBContext context = JAXBContext.newInstance(ConnectorModel.class, Connector.class, ConnectorDependency.class, ConnectorProtocol.class);
 		    Unmarshaller um = context.createUnmarshaller();
 		    ConnectorModel model = (ConnectorModel) um.unmarshal(new InputSource(stream));
 		    model.setCamelVersion(camelVersion);

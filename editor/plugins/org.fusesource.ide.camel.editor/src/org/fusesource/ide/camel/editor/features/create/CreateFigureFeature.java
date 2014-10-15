@@ -89,7 +89,7 @@ public class CreateFigureFeature<E> extends AbstractCreateFeature implements Pal
 	 * 
 	 * @return	the icon name or null
 	 */
-	private String getIconName() {
+	protected String getIconName() {
 		AbstractNode node = getExemplar();
 		if (node != null) {
 			return node.getIconName();

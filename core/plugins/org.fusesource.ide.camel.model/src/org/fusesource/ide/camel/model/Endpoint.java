@@ -119,6 +119,8 @@ public class Endpoint extends AbstractNode {
 					|| u.startsWith("jdbc") || u.startsWith("sql") || u.startsWith("ibatis") || u.startsWith("mybatis")
 					|| u.startsWith("javaspace") || u.startsWith("jcr") || u.startsWith("ldap") || u.startsWith("mongodb") || u.startsWith("zookeeper")) {
 				return "endpointRepository.png";
+			} else if (u.startsWith("twitter")) {
+			    return "endpointTwitter.png";
 			}
 		}
 		return ICON;

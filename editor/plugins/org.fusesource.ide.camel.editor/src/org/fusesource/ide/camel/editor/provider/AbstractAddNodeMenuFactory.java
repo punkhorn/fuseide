@@ -13,6 +13,8 @@
 package org.fusesource.ide.camel.editor.provider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -22,7 +24,10 @@ import java.util.TreeMap;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.features.context.ICustomContext;
 import org.eclipse.graphiti.mm.pictograms.PictogramElement;
+import org.eclipse.graphiti.palette.IToolEntry;
+import org.eclipse.graphiti.palette.impl.ObjectCreationToolEntry;
 import org.eclipse.graphiti.tb.ContextMenuEntry;
+import org.eclipse.graphiti.tb.IContextMenuEntry;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IContributionItem;
 import org.eclipse.jface.action.IMenuManager;
@@ -61,7 +66,7 @@ public abstract class AbstractAddNodeMenuFactory {
 	 * @param context	the context
 	 * @param fp		the feature provider
 	 */
-	public void setupMenuStructure(ContextMenuEntry rootMenu, ICustomContext context, IFeatureProvider fp) {
+	public void setupMenuStructure(ContextMenuEntry rootMenu, ICustomContext context, IFeatureProvider fp, ArrayList<IToolEntry> toolEntries) {
 		AbstractNode selectedNode = getSelectedNode(context, fp);
 		boolean onlyEndpoints = false;
 		if (selectedNode instanceof Route || selectedNode == null) {
@@ -92,6 +97,9 @@ public abstract class AbstractAddNodeMenuFactory {
 
 		// then we need to fill the shelves menus
 		fillEndpointsContextMenu(endpointsEntry, context, fp);
+		// now add additional entries to endpoints category
+		fillAdditionalEndpointsContextMenu(endpointsEntry, context, fp, toolEntries);
+		
 		if (!onlyEndpoints) {
 			fillRoutingContextMenu(routingEntry, context, fp);
 			fillControlFlowContextMenu(controlFlowEntry, context, fp);
@@ -140,6 +148,17 @@ public abstract class AbstractAddNodeMenuFactory {
 			}
 		}
 
+		// sort endpoints
+		Arrays.sort(endpointsEntry.getChildren(), new Comparator<IContextMenuEntry>() {
+		    /* (non-Javadoc)
+		     * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+		     */
+		    @Override
+		    public int compare(IContextMenuEntry o1, IContextMenuEntry o2) {
+		        return o1.getText().compareToIgnoreCase(o2.getText());
+		    }
+		});
+		
 		// and finally we add the shelves entries to the parent menu
 		rootMenu.add(endpointsEntry);
 		rootMenu.add(routingEntry);
@@ -284,7 +303,7 @@ public abstract class AbstractAddNodeMenuFactory {
 
 	// MenuManager creation
 
-	public void fillMenu(RiderDesignEditor editor, Menu menu) {
+	public void fillMenu(RiderDesignEditor editor, Menu menu, ArrayList<IToolEntry> additionalEndpoints) {
 		this.editor = editor;
 		this.selectedNode = editor.getSelectedNode();
 		List<MenuManager> menus = new ArrayList<MenuManager>();
@@ -297,6 +316,16 @@ public abstract class AbstractAddNodeMenuFactory {
 		} else {
 			MenuManager subMenu = new MenuManager(Messages.endpointsDrawerTitle, "org.fusesource.ide.actions.add.endpoints");
 			fillEndpointsMenu(subMenu);
+			fillAdditionalEndpointsMenu(subMenu, additionalEndpoints);
+			Arrays.sort(subMenu.getItems(), new Comparator<IContributionItem>() {
+			    /* (non-Javadoc)
+			     * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+			     */
+			    @Override
+			    public int compare(IContributionItem o1, IContributionItem o2) {
+	                 return o1.getId().compareToIgnoreCase(o2.getId());
+			    }
+			});
 			addMenu(menus, subMenu);
 
 			subMenu = new MenuManager(Messages.routingDrawerTitle, "org.fusesource.ide.actions.add.routing");
@@ -340,7 +369,7 @@ public abstract class AbstractAddNodeMenuFactory {
 	}
 	 */
 
-	public void fillMenu(RiderDesignEditor editor, MenuManager menu, AbstractNode node) {
+	public void fillMenu(RiderDesignEditor editor, MenuManager menu, AbstractNode node, ArrayList<IToolEntry> additionalEndpoints) {
 		this.editor = editor;
 		this.selectedNode = node;
 		List<MenuManager> menus = new ArrayList<MenuManager>();
@@ -353,6 +382,8 @@ public abstract class AbstractAddNodeMenuFactory {
 		} else {
 			MenuManager subMenu = new MenuManager(Messages.endpointsDrawerTitle, "org.fusesource.ide.actions.add.endpoints");
 			fillEndpointsMenu(subMenu);
+			fillAdditionalEndpointsMenu(subMenu, additionalEndpoints);
+            Arrays.sort(subMenu.getItems());
 			addMenu(menus, subMenu);
 
 			subMenu = new MenuManager(Messages.routingDrawerTitle, "org.fusesource.ide.actions.add.routing");
@@ -533,6 +564,23 @@ public abstract class AbstractAddNodeMenuFactory {
 		return org.fusesource.ide.camel.model.Activator.getDefault().getImageDescriptor(key);
 	}
 
+	private void fillAdditionalEndpointsContextMenu(ContextMenuEntry menu, ICustomContext context, IFeatureProvider fp, ArrayList<IToolEntry> toolEntries) {
+	    for (IToolEntry te : toolEntries) {
+	        if (te instanceof ObjectCreationToolEntry) {
+	            ObjectCreationToolEntry octe = (ObjectCreationToolEntry)te;
+	            addMenuItem(menu, octe.getLabel(), octe.getDescription(), Endpoint.class, context, fp);
+	        }	        
+	    }
+	}	
+	
+	private void fillAdditionalEndpointsMenu(IMenuManager menu, ArrayList<IToolEntry> toolEntries) {
+        for (IToolEntry te : toolEntries) {
+            if (te instanceof ObjectCreationToolEntry) {
+                ObjectCreationToolEntry octe = (ObjectCreationToolEntry)te;
+                addMenuItem(menu, octe.getLabel(), octe.getDescription(), Endpoint.class);
+            }           
+        }
+    }   
 
 	protected abstract void fillTransformationContextMenu(ContextMenuEntry menu, ICustomContext context, IFeatureProvider fp);
 
@@ -543,7 +591,6 @@ public abstract class AbstractAddNodeMenuFactory {
 	protected abstract void fillEndpointsContextMenu(ContextMenuEntry menu, ICustomContext context, IFeatureProvider fp);
 
 	protected abstract void fillMiscellaneousContextMenu(ContextMenuEntry menu, ICustomContext context, IFeatureProvider fp);
-
 
 	protected abstract void fillTransformationMenu(IMenuManager menu);
 

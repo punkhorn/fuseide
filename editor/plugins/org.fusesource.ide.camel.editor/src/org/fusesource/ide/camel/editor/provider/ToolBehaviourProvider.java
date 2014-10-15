@@ -12,6 +12,9 @@
 package org.fusesource.ide.camel.editor.provider;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -51,6 +54,7 @@ import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.editor.EditorMessages;
 import org.fusesource.ide.camel.editor.Messages;
 import org.fusesource.ide.camel.editor.editor.RiderDesignEditor;
+import org.fusesource.ide.camel.editor.features.create.CreateConnectorFigureFeature;
 import org.fusesource.ide.camel.editor.features.custom.AddRouteFeature;
 import org.fusesource.ide.camel.editor.features.custom.DeleteAllEndpointBreakpointsFeature;
 import org.fusesource.ide.camel.editor.features.custom.SetEndpointBreakpointFeature;
@@ -59,6 +63,9 @@ import org.fusesource.ide.camel.editor.validation.ValidationFactory;
 import org.fusesource.ide.camel.editor.validation.ValidationResult;
 import org.fusesource.ide.camel.model.AbstractNode;
 import org.fusesource.ide.camel.model.Flow;
+import org.fusesource.ide.camel.model.connectors.Connector;
+import org.fusesource.ide.camel.model.connectors.ConnectorModel;
+import org.fusesource.ide.camel.model.connectors.ConnectorModelFactory;
 import org.fusesource.ide.commons.util.Objects;
 import org.fusesource.ide.launcher.debug.model.CamelConditionalBreakpoint;
 import org.fusesource.ide.launcher.debug.model.CamelEndpointBreakpoint;
@@ -71,6 +78,17 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
 
     private static final String PALETTE_ENTRY_PROVIDER_EXT_POINT_ID = "org.fusesource.ide.editor.paletteContributor";
 
+    private static final ArrayList<String> IGNORED_CONNECTORS;
+    
+    static {
+        IGNORED_CONNECTORS = new ArrayList<String>();
+        IGNORED_CONNECTORS.add("core");
+        IGNORED_CONNECTORS.add("mina");
+        IGNORED_CONNECTORS.add("xmlrpc");
+        
+        //IGNORED_CONNECTORS.add("");
+    }
+    
     /**
      * constructor
      * 
@@ -235,9 +253,13 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
         // display sub-menu hierarchical or flat
         addNodesMenu.setSubmenu(true);
 
+        ArrayList<IToolEntry> additionalToolEntries = new ArrayList<IToolEntry>();
+        additionalToolEntries.addAll(getConnectorsToolEntries());
+        additionalToolEntries.addAll(getExtensionPointToolEntries());
+        
         // new use a factory for building the menu structure
         AddNodeMenuFactory f = new AddNodeMenuFactory();
-        f.setupMenuStructure(addNodesMenu, context, fp);
+        f.setupMenuStructure(addNodesMenu, context, fp, additionalToolEntries);
 
         entries.add(addNodesMenu);
 
@@ -280,17 +302,13 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
         ret.add(compartmentEntryMisc);
         compartmentEntryMisc.setInitiallyOpen(false);
 
-        // add compartments from super class and skip first as its the
-        // connection menu
-        IPaletteCompartmentEntry[] superCompartments = super.getPalette();
-        for (int i = 1; i < superCompartments.length; i++) {
-            IPaletteCompartmentEntry entry = superCompartments[i];
-            for (IToolEntry toolEntry : entry.getToolEntries()) {
-                if (toolEntry instanceof ObjectCreationToolEntry) {
-                    ObjectCreationToolEntry octe = (ObjectCreationToolEntry) toolEntry;
-                    if (octe.getCreateFeature() instanceof PaletteCategoryItemProvider) {
-                        PaletteCategoryItemProvider pcit = (PaletteCategoryItemProvider) octe.getCreateFeature();
-                        switch (pcit.getCategoryType()) {
+        ArrayList<IToolEntry> paletteItems = getAggregatedToolEntries();
+        for (IToolEntry toolEntry : paletteItems) {
+            if (toolEntry instanceof ObjectCreationToolEntry) {
+                ObjectCreationToolEntry octe = (ObjectCreationToolEntry) toolEntry;
+                if (octe.getCreateFeature() instanceof PaletteCategoryItemProvider) {
+                    PaletteCategoryItemProvider pcit = (PaletteCategoryItemProvider) octe.getCreateFeature();
+                    switch (pcit.getCategoryType()) {
                         case CONNECTORS:
                             compartmentEntryEndpoints.addToolEntry(toolEntry);
                             break;
@@ -309,12 +327,49 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
                         case NONE:
                         default: // do not add those items
                             break;
-                        }
                     }
                 }
             }
         }
 
+        return ret.toArray(new IPaletteCompartmentEntry[ret.size()]);
+    }
+
+    public ArrayList<IToolEntry> getPredefinedToolEntries() {
+        ArrayList<IToolEntry> entries = new ArrayList<IToolEntry>();
+        
+        // add compartments from super class and skip first as its the
+        // connection menu
+        IPaletteCompartmentEntry[] superCompartments = super.getPalette();
+        for (int i = 1; i < superCompartments.length; i++) {
+            IPaletteCompartmentEntry entry = superCompartments[i];
+            for (IToolEntry toolEntry : entry.getToolEntries()) {
+                if (toolEntry instanceof ObjectCreationToolEntry) {
+                    ObjectCreationToolEntry octe = (ObjectCreationToolEntry) toolEntry;
+                    if (octe.getCreateFeature() instanceof PaletteCategoryItemProvider) {
+                        entries.add(octe);
+                    }
+                }
+            }
+        }
+        
+        // sort the palette entries
+        Collections.sort(entries, new Comparator<IToolEntry>() {
+            /* (non-Javadoc)
+             * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+             */
+            @Override
+            public int compare(IToolEntry o1, IToolEntry o2) {
+                return o1.getLabel().compareToIgnoreCase(o2.getLabel());
+            }
+        });
+        
+        return entries;
+    }
+    
+    public ArrayList<IToolEntry> getExtensionPointToolEntries() {
+        ArrayList<IToolEntry> entries = new ArrayList<IToolEntry>();
+        
         // inject palette entries delivered via extension points
         IConfigurationElement[] extensions = Platform.getExtensionRegistry().getConfigurationElementsFor(PALETTE_ENTRY_PROVIDER_EXT_POINT_ID);
         try {
@@ -322,32 +377,76 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
                 final Object o = e.createExecutableExtension("class");
                 if (o instanceof ICustomPaletteEntry) {
                     ICustomPaletteEntry pe = (ICustomPaletteEntry)o;
-                    ICreateFeature cf = pe.newCreateFeatures(getFeatureProvider())[0];
+                    ICreateFeature cf = pe.newCreateFeature(getFeatureProvider());
                     IToolEntry te = new ObjectCreationToolEntry(cf.getName(), cf.getDescription(), cf.getCreateImageId(), cf.getCreateLargeImageId(), cf);
-                    switch (pe.getPaletteCategory()) {
-                        case CONTROL_FLOW:  compartmentEntryControlFlow.addToolEntry(te);
-                                            break;
-                        case CONNECTORS:    compartmentEntryEndpoints.addToolEntry(te);
-                                            break;
-                        case MISCELLANEOUS: compartmentEntryMisc.addToolEntry(te);
-                                            break;
-                        case ROUTING:       compartmentEntryRouting.addToolEntry(te);
-                                            break;
-                        case TRANSFORMATION:compartmentEntryTransformation.addToolEntry(te);
-                                            break;
-                        case NONE:
-                        default:
-                                            break;
-                    }
+                    entries.add(te);
                 }
             }
         } catch (CoreException ex) {
-            System.out.println(ex.getMessage());
+            Activator.getLogger().error(ex);
         }
-
-        return ret.toArray(new IPaletteCompartmentEntry[ret.size()]);
+        
+        // sort the palette entries
+        Collections.sort(entries, new Comparator<IToolEntry>() {
+            /* (non-Javadoc)
+             * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+             */
+            @Override
+            public int compare(IToolEntry o1, IToolEntry o2) {
+                return o1.getLabel().compareToIgnoreCase(o2.getLabel());
+            }
+        });
+        
+        return entries;
     }
-
+    
+    public ArrayList<IToolEntry> getConnectorsToolEntries() {
+        ArrayList<IToolEntry> entries = new ArrayList<IToolEntry>();
+        
+        // inject palette entries generated out of the connector model file
+        ConnectorModel connectorModel = ConnectorModelFactory.getModelForVersion(Activator.getDefault().getCamelVersion());
+        for (Connector connector : connectorModel.getSupportedConnectors()) {
+            if (shouldBeIgnored(connector.getId())) continue;
+            ICreateFeature cf = new CreateConnectorFigureFeature(getFeatureProvider(), connector);
+            IToolEntry te = new ObjectCreationToolEntry(cf.getName(), cf.getDescription(), cf.getCreateImageId(), cf.getCreateLargeImageId(), cf);
+            entries.add(te);
+        }
+        
+        // sort the palette entries
+        Collections.sort(entries, new Comparator<IToolEntry>() {
+            /* (non-Javadoc)
+             * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+             */
+            @Override
+            public int compare(IToolEntry o1, IToolEntry o2) {
+                return o1.getLabel().compareToIgnoreCase(o2.getLabel());
+            }
+        });
+        
+        return entries;
+    }
+    
+    public ArrayList<IToolEntry> getAggregatedToolEntries() {
+        ArrayList<IToolEntry> entries = new ArrayList<IToolEntry>();
+        
+        entries.addAll(getPredefinedToolEntries());
+        entries.addAll(getConnectorsToolEntries());
+        entries.addAll(getExtensionPointToolEntries());
+        
+        // sort the palette entries
+        Collections.sort(entries, new Comparator<IToolEntry>() {
+            /* (non-Javadoc)
+             * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+             */
+            @Override
+            public int compare(IToolEntry o1, IToolEntry o2) {
+                return o1.getLabel().compareToIgnoreCase(o2.getLabel());
+            }
+        });
+        
+        return entries;
+    }
+    
     /*
      * (non-Javadoc)
      * 
@@ -531,5 +630,16 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
     @Override
     public boolean isMultiSelectionEnabled() {
         return true;
+    }
+    
+    /**
+     * checks whether a connector should be ignored or not and therefore not put
+     * onto the palette of the editor
+     * 
+     * @param connectorId
+     * @return
+     */
+    private boolean shouldBeIgnored(String connectorId) {
+       return IGNORED_CONNECTORS.contains(connectorId); 
     }
 }
