@@ -29,7 +29,7 @@ public class ImageProvider extends AbstractImageProvider {
 	private static final String ROOT_FOLDER_FOR_IMG = "icons/"; //$NON-NLS-1$
 
 	// The prefix for all identifiers of this image provider
-	protected static final String PREFIX = "org.fusesource.demo.icons."; //$NON-NLS-1$
+	public static final String PREFIX = "org.fusesource.demo.icons."; //$NON-NLS-1$
 	protected static final String POSTFIX_SMALL = "_small"; //$NON-NLS-1$
 	protected static final String POSTFIX_LARGE = "_large"; //$NON-NLS-1$
 
@@ -143,10 +143,16 @@ public class ImageProvider extends AbstractImageProvider {
 	}
 
 	public static String getKeyForSmallIcon(String iconName) {
-		return String.format("%s%s%s", PREFIX, iconName, POSTFIX_SMALL);
+	    if (isImageAvailable(iconName)) return String.format("%s%s%s", PREFIX, iconName, POSTFIX_SMALL);
+	    return String.format("%s%s%s", PREFIX, "endpoint.png", POSTFIX_SMALL);
 	}
 
 	public static String getKeyForLargeIcon(String iconName) {
-		return String.format("%s%s%s", PREFIX, iconName, POSTFIX_LARGE);
+	    if (isImageAvailable(iconName)) return String.format("%s%s%s", PREFIX, iconName, POSTFIX_LARGE);
+		return String.format("%s%s%s", PREFIX, "endpoint", POSTFIX_LARGE);
+	}
+	
+	protected static boolean isImageAvailable(String iconName) {
+	    return Activator.getDefault().getBundle().getEntry(String.format("%s%s", ROOT_FOLDER_FOR_IMG, iconName)) != null;
 	}
 }
