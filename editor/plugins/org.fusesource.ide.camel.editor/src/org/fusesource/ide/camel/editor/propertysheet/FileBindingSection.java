@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.forms.widgets.Form;
@@ -80,6 +81,7 @@ public class FileBindingSection extends AbstractPropertySection {
         AbstractNode n = AbstractNodes.toAbstractNode(o);
         if (n instanceof Endpoint) {
             this.selectedEP = (Endpoint)n;
+            txtPath.setText(getPath(this.selectedEP.getUri()));
         } else {
             this.selectedEP = null;
         }
@@ -107,11 +109,24 @@ public class FileBindingSection extends AbstractPropertySection {
 
         Composite sbody = form.getBody();
         
-        toolkit.createLabel(sbody, "Path:");
-        this.txtPath = toolkit.createText(sbody, "", SWT.BORDER | SWT.RIGHT);
-        this.txtPath.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
-        this.btnPathBrowser = toolkit.createButton(sbody, "...", SWT.BORDER | SWT.PUSH);
+        Label l = toolkit.createLabel(sbody, "Path:");
+        l.setLayoutData(new GridData());
         
+        this.txtPath = toolkit.createText(sbody, "", SWT.BORDER | SWT.LEFT);
+        this.txtPath.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+        this.txtPath.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                String path = txtPath.getText();
+                File f = new File(path);
+                if (selectedEP != null) {
+                    updateUri(f.toURI().toString());
+                }
+            }
+        });
+        
+        this.btnPathBrowser = toolkit.createButton(sbody, "...", SWT.BORDER | SWT.PUSH);
+        this.btnPathBrowser.setLayoutData(new GridData());
         this.btnPathBrowser.addSelectionListener(new SelectionAdapter() {
             /* (non-Javadoc)
              * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
@@ -125,17 +140,32 @@ public class FileBindingSection extends AbstractPropertySection {
             }
         });
         
-        this.txtPath.addModifyListener(new ModifyListener() {
-            @Override
-            public void modifyText(ModifyEvent e) {
-                String path = txtPath.getText();
-                File f = new File(path);
-                if (selectedEP != null) {
-                    selectedEP.setUri(f.toURI().toString());
-                }
-            }
-        });
-        
         form.layout();
+    }
+    
+    /**
+     * 
+     * @param path
+     */
+    protected void updateUri(String path) {
+        String oldValue = getPath(selectedEP.getUri());
+        String newValue = getPath(path);
+        selectedEP.setUri(selectedEP.getUri().replaceFirst(oldValue, newValue));
+    }
+    
+    /**
+     * 
+     * @param uri
+     * @return
+     */
+    protected String getPath(String uri) {
+        if (uri.startsWith("file:")) {
+            int idx = uri.indexOf('?');
+            if (idx != -1) {
+                return uri.substring("file:".length(), idx);
+            }
+            return uri.substring("file:".length());
+        }
+        return "";
     }
 }
