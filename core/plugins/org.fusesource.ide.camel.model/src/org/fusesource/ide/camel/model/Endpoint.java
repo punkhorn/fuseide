@@ -107,21 +107,31 @@ public class Endpoint extends AbstractNode {
 		if (u != null) {
 			if (u.startsWith("drools:")) {
 				return "endpointDrools.png";
-			} else if (u.startsWith("jms") || u.startsWith("activemq") || u.startsWith("mq") || u.startsWith("sjms")) {
+			} else if (u.startsWith("jms:") || u.startsWith("activemq") || u.startsWith("mq") || u.startsWith("sjms")) {
 				return "endpointQueue.png";
-			} else if (u.startsWith("file") || u.startsWith("ftp") || u.startsWith("sftp") || u.startsWith("jcr") || u.startsWith("scp")) {
+			} else if (u.startsWith("file:") || u.startsWith("ftp") || u.startsWith("sftp") || u.startsWith("jcr") || u.startsWith("scp")) {
 				return "endpointFolder.png";
-			} else if (u.startsWith("log") || u.startsWith("hdfs") || u.startsWith("paxlogging")) {
+			} else if (u.startsWith("log:") || u.startsWith("hdfs") || u.startsWith("paxlogging")) {
 				return "endpointFile.png";
-			} else if (u.startsWith("timer") || u.startsWith("quartz")) {
+			} else if (u.startsWith("timer:") || u.startsWith("quartz")) {
 				return "endpointTimer.png";
-			} else if (u.startsWith("elasticsearch") || u.startsWith("hazelcast") || u.startsWith("hibernate") || u.startsWith("jpa")
-					|| u.startsWith("jdbc") || u.startsWith("sql") || u.startsWith("ibatis") || u.startsWith("mybatis")
-					|| u.startsWith("javaspace") || u.startsWith("jcr") || u.startsWith("ldap") || u.startsWith("mongodb") || u.startsWith("zookeeper")) {
+			} else if (u.startsWith("elasticsearch:") || u.startsWith("hazelcast:") || u.startsWith("hibernate:") || u.startsWith("jpa:")
+					|| u.startsWith("jdbc:") || u.startsWith("sql:") || u.startsWith("ibatis:") || u.startsWith("mybatis:")
+					|| u.startsWith("javaspace:") || u.startsWith("jcr:") || u.startsWith("ldap:") || u.startsWith("mongodb:") || u.startsWith("zookeeper:")) {
 				return "endpointRepository.png";
-			} else if (u.startsWith("twitter")) {
+			} else if (u.startsWith("twitter:")) {
 			    return "endpointTwitter.png";
-			}
+			} else if (u.startsWith("weather:")) {
+			    return "endpointWeather.png";
+			} else if (u.startsWith("sap-netweaver:")) {
+                return "endpointSAPNetweaver.png";
+            } else if (u.startsWith("sap:")) {
+                return "endpointSAP.png";
+            } else if (u.startsWith("salesforce:")) {
+                return "endpointSalesforce.png";
+            } else if (u.startsWith("facebook:")) {
+                return "endpointFacebook.png";
+            }
 		}
 		return ICON;
 	}

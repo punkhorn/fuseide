@@ -17,6 +17,7 @@ import org.eclipse.graphiti.features.ICreateFeature;
 import org.eclipse.graphiti.features.IFeatureProvider;
 import org.eclipse.graphiti.tb.IImageDecorator;
 import org.eclipse.graphiti.tb.ImageDecorator;
+import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.editor.features.create.CreateEndpointFigureFeature;
 import org.fusesource.ide.camel.editor.provider.PaletteCategoryItemProvider.CATEGORY_TYPE;
 import org.fusesource.ide.camel.model.Endpoint;
@@ -86,7 +87,7 @@ public class FileConnectorContribution implements ICustomPaletteEntry {
         ConnectorDependency dep = new ConnectorDependency();
         dep.setGroupId("org.apache.camel");
         dep.setArtifactId("camel-core");
-        dep.setVersion("${camel.version}");
+        dep.setVersion(Activator.getDefault().getCamelVersion());
         
         deps.add(dep);
         
