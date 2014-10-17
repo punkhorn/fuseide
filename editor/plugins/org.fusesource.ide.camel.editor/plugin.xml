@@ -99,20 +99,20 @@
                label="File Binding">
          </propertyTab>
          <propertyTab
-               afterTab="FileBindingTab"
+               afterTab="DetailsTab"
                category="sample"
                id="AdvancedEndpointPropertiesSectionTab"
                indented="false"
                label="Advanced">
          </propertyTab>
          <propertyTab
-               afterTab="AdvancedEndpointPropertiesSectionTab"
+               afterTab="FileBindingTab"
                category="sample"
                id="DetailsTab"
                indented="false"
                label="Generic"/>
          <propertyTab
-               afterTab="DetailsTab"
+               afterTab="AdvancedEndpointPropertiesSectionTab"
                category="sample"
                id="DocumentationTab"
                indented="false"
@@ -129,14 +129,14 @@
                tab="FileBindingTab">
          </propertySection>
          <propertySection
-               afterSection="org.fusesource.ide.camel.editor.propertysheet.FileBindingSection"
+               afterSection="org.fusesource.ide.camel.editor.propertysheet.DetailsSection"
                class="org.fusesource.ide.camel.editor.propertysheet.AdvancedEndpointPropertiesSection"
                filter="org.fusesource.ide.camel.editor.propertysheet.AdvancedPropertiesFilter"
                id="org.fusesource.ide.camel.editor.propertysheet.AdvancedEndpointPropertiesSection"
                tab="AdvancedEndpointPropertiesSectionTab">
          </propertySection>
          <propertySection
-               afterSection="org.fusesource.ide.camel.editor.propertysheet.AdvancedEndpointPropertiesSection"
+               afterSection="org.fusesource.ide.camel.editor.propertysheet.FileBindingSection"
                class="org.fusesource.ide.camel.editor.propertysheet.DetailsSection"
                id="org.fusesource.ide.camel.editor.propertysheet.DetailsSection"
                tab="DetailsTab">
@@ -150,7 +150,7 @@
          </propertySection>
 
          <propertySection
-               afterSection="org.fusesource.ide.camel.editor.propertysheet.DetailsSection"
+               afterSection="org.fusesource.ide.camel.editor.propertysheet.AdvancedEndpointPropertiesSection"
                class="org.fusesource.ide.camel.editor.propertysheet.DocumentationSection"
                id="org.fusesource.ide.camel.editor.propertysheet.DocumentationSection"
                tab="DocumentationTab">

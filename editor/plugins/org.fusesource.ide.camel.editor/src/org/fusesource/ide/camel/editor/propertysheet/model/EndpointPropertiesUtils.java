@@ -11,13 +11,17 @@
 package org.fusesource.ide.camel.editor.propertysheet.model;
 
 import java.util.ArrayList;
+import java.util.List;
+
+import org.fusesource.ide.camel.editor.Activator;
+import org.fusesource.ide.camel.model.connectors.ConnectorModelFactory;
 
 /**
  * @author lhein
  */
 public final class EndpointPropertiesUtils {
 
-    private static final EndpointPropertyModel DUMMY_MODEL;
+    private static final List<EndpointPropertyModel> knownPropertyModels = new ArrayList<EndpointPropertyModel>();
     
     static {
         ArrayList<EndpointProperty> propertiesList = new ArrayList<EndpointProperty>();
@@ -26,9 +30,25 @@ public final class EndpointPropertiesUtils {
         propertiesList.add(new EndpointProperty("bufferSize", "int", 128000, EndpointPropertyKind.BOTH));
         propertiesList.add(new EndpointProperty("forceWrites", "boolean", Boolean.TRUE.booleanValue(), EndpointPropertyKind.PRODUCER));
                 
-        DUMMY_MODEL = new EndpointPropertyModel();
-        DUMMY_MODEL.setEndpointProtocol("file");
-        DUMMY_MODEL.setProperties(propertiesList);
+        EndpointPropertyModel model = new EndpointPropertyModel("file");
+        model.setProperties(propertiesList);
+        knownPropertyModels.add(model);
+     
+        propertiesList = new ArrayList<EndpointProperty>();
+        propertiesList.add(new EndpointProperty("location", "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("lat",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("lon", "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("period", "java.lang.Integer", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("headerName", "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("mode", "choice[HTML,JSON,XML]", "JSON", EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("units", "choice[IMPERIAL,METRIC]", "METRIC", EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("consumer.delay", "java.lang.Long", new Long(3600000), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("consumer.initialDelay", "java.lang.Long", new Long(1000), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("consumer.userFixedDelay", "boolean", false, EndpointPropertyKind.CONSUMER));
+                
+        model = new EndpointPropertyModel(ConnectorModelFactory.getModelForVersion(Activator.getDefault().getCamelVersion()).getConnectorForComponent("weather"));
+        model.setProperties(propertiesList);
+        knownPropertyModels.add(model);
     }
     
     /**
@@ -38,7 +58,10 @@ public final class EndpointPropertiesUtils {
      * @return  the properties model or null if not available
      */
     public static EndpointPropertyModel getPropertiesForEndpoint(String protocol) {
-        if (protocol.equalsIgnoreCase(DUMMY_MODEL.getEndpointProtocol())) return DUMMY_MODEL;
+        for (EndpointPropertyModel model : knownPropertyModels) {
+            if ((model.getConnector() != null && model.getConnector().supportsProtocol(protocol)) ||
+                (model.getProtocol() != null && model.getProtocol().equalsIgnoreCase(protocol))) return model;    
+        }
         return null;
     }
     
@@ -63,5 +86,14 @@ public final class EndpointPropertiesUtils {
                 p.getType().equalsIgnoreCase("float") || 
                 p.getType().equalsIgnoreCase("java.lang.Float") || 
                 p.getType().equalsIgnoreCase("Number");
+    }
+    
+    public static boolean isChoiceProperty(EndpointProperty p) {
+        return p.getType().toLowerCase().startsWith("choice[");
+    }
+    
+    public static String[] getChoices(EndpointProperty p) {
+        String rawChoices = p.getType().substring(p.getType().indexOf('[')+1, p.getType().indexOf(']'));
+        return rawChoices.split(",");
     }
 }

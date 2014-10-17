@@ -33,6 +33,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.views.properties.tabbed.AbstractPropertySection;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.fusesource.ide.camel.editor.AbstractNodes;
+import org.fusesource.ide.camel.editor.utils.DiagramUtils;
 import org.fusesource.ide.camel.model.AbstractNode;
 import org.fusesource.ide.camel.model.Endpoint;
 import org.fusesource.ide.commons.ui.Selections;
@@ -82,8 +83,10 @@ public class FileBindingSection extends AbstractPropertySection {
         if (n instanceof Endpoint) {
             this.selectedEP = (Endpoint)n;
             txtPath.setText(getPath(this.selectedEP.getUri()));
+            form.setText("Filesystem Configuration - " + DiagramUtils.filterFigureLabel(selectedEP.getDisplayText()));
         } else {
             this.selectedEP = null;
+            form.setText("Filesystem Configuration");
         }
     }
 
@@ -102,7 +105,7 @@ public class FileBindingSection extends AbstractPropertySection {
 
         form = toolkit.createForm(parent);
         form.setLayoutData(new GridData(GridData.FILL_BOTH));
-        form.setText("Filesystem Connector");
+        form.setText("Filesystem Configuration");
         toolkit.decorateFormHeading(form);
 
         form.getBody().setLayout(new GridLayout(3, false));
@@ -120,7 +123,7 @@ public class FileBindingSection extends AbstractPropertySection {
                 String path = txtPath.getText();
                 File f = new File(path);
                 if (selectedEP != null) {
-                    updateUri(f.toURI().toString());
+                    updateUri(path.length() < 1 ? "" : f.toURI().toString());
                 }
             }
         });
@@ -150,6 +153,7 @@ public class FileBindingSection extends AbstractPropertySection {
     protected void updateUri(String path) {
         String oldValue = getPath(selectedEP.getUri());
         String newValue = getPath(path);
+        if (oldValue.equals(newValue)) return;
         selectedEP.setUri(selectedEP.getUri().replaceFirst(oldValue, newValue));
     }
     

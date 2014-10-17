@@ -72,4 +72,17 @@ public class Connector {
 	public void setDependency(ConnectorDependency dependency) {
 		this.dependency = dependency;
 	}
+	
+	/**
+	 * checks if the connector can handle the given protocol
+	 * 
+	 * @param protocol
+	 * @return
+	 */
+	public boolean supportsProtocol(String protocol) {
+	    for (ConnectorProtocol p : protocols) {
+	        if (p.getProtocol().equalsIgnoreCase(protocol)) return true;
+	    }
+	    return false;
+	}
 }

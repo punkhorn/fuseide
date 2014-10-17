@@ -12,32 +12,90 @@ package org.fusesource.ide.camel.editor.propertysheet.model;
 
 import java.util.List;
 
+import org.fusesource.ide.camel.model.connectors.Connector;
+import org.fusesource.ide.camel.model.connectors.ConnectorProtocol;
+
 /**
  * @author lhein
  */
 public class EndpointPropertyModel {
     
-    private String endpointProtocol;
+    public static final String PROTOCOL_PROPERTY = "endpointprotocol";
+    
     private List<EndpointProperty> properties;
+    private Connector connector;
+    private EndpointProperty protocolProperty;
+    private String protocol;
     
     /**
-     * @return the endpointProtocol
+     * 
      */
-    public String getEndpointProtocol() {
-        return this.endpointProtocol;
+    public EndpointPropertyModel(Connector connector) {
+        this.connector = connector;
+    }
+    
+    public EndpointPropertyModel(String protocol) {
+        this.protocol = protocol;
+    }
+    
+    private String buildChoice() {
+        String result = "choice[";
+        
+        if (this.connector != null) {
+            boolean first = true;
+            for (ConnectorProtocol p : connector.getProtocols()) {
+                if (first) {
+                    first = false;
+                } else {
+                    result += ",";
+                }
+                result += p.getProtocol();
+            }        
+        } else {
+            result += getProtocol();
+        }
+        result += "]";
+        
+        return result;
     }
     
     /**
-     * @param endpointProtocol the endpointProtocol to set
+     * @return the connector
      */
-    public void setEndpointProtocol(String endpointProtocol) {
-        this.endpointProtocol = endpointProtocol;
+    public Connector getConnector() {
+        return this.connector;
+    }
+    
+    /**
+     * @return the protocol
+     */
+    public String getProtocol() {
+        return this.protocol;
+    }
+    
+    /**
+     * checks if there is a property with the given name
+     * 
+     * @param propertyName
+     * @return
+     */
+    public boolean hasProperty(String propertyName) {
+        for (EndpointProperty p : properties) {
+            if (p.getName().equals(propertyName)) return true;
+        }
+        return false;
     }
     
     /**
      * @return the properties
      */
     public List<EndpointProperty> getProperties() {
+        if (!hasProperty(PROTOCOL_PROPERTY)) {
+            if (this.protocolProperty == null) {
+                this.protocolProperty = new EndpointProperty(PROTOCOL_PROPERTY, buildChoice(), null, EndpointPropertyKind.BOTH);
+            }
+            properties.add(0, protocolProperty);
+        }
         return this.properties;
     }
     

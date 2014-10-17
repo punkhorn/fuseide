@@ -61,6 +61,23 @@ public class ConnectorModel {
 	}
 		
 	/**
+	 * returns the connector for a given component id
+	 * 
+	 * @param componentId
+	 * @return
+	 */
+	public Connector getConnectorForComponent(String componentId) {
+	    String id = componentId;
+	    if (componentId.toLowerCase().startsWith("camel-")) {
+	        id = componentId.substring(componentId.indexOf('-')+1);
+	    }
+	    for (Connector c : supportedConnectors) {
+	        if (c.getId().equalsIgnoreCase(id)) return c;
+	    }
+	    return null;
+	}
+	
+	/**
 	 * creates the backlog tracer event message for a given xml dump
 	 * 
 	 * @param stream	the xml stream

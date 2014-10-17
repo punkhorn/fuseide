@@ -16,6 +16,7 @@ import java.util.List;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.ModifyEvent;
@@ -41,6 +42,7 @@ import org.fusesource.ide.camel.editor.propertysheet.model.EndpointPropertiesUti
 import org.fusesource.ide.camel.editor.propertysheet.model.EndpointProperty;
 import org.fusesource.ide.camel.editor.propertysheet.model.EndpointPropertyKind;
 import org.fusesource.ide.camel.editor.propertysheet.model.EndpointPropertyModel;
+import org.fusesource.ide.camel.editor.utils.DiagramUtils;
 import org.fusesource.ide.camel.model.AbstractNode;
 import org.fusesource.ide.camel.model.Endpoint;
 import org.fusesource.ide.commons.ui.Selections;
@@ -94,14 +96,24 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         
         if (n instanceof Endpoint) {
             this.selectedEP = (Endpoint) n;
+            form.setText("Advanced Properties - " + DiagramUtils.filterFigureLabel(selectedEP.getDisplayText()));
         } else {
             this.selectedEP = null;
+            form.setText("Advanced Properties");
         }
+        
+        int idx = Math.max(tabFolder.getSelectionIndex(), 0);
 
+        if (commonTab != null)      commonTab.dispose();
+        if (consumerTab != null)    consumerTab.dispose();
+        if (producerTab != null)    producerTab.dispose();
+        
         // now generate the tab contents
         createCommonsTab(tabFolder);
         createConsumerTab(tabFolder);
         createProducerTab(tabFolder);
+        
+        tabFolder.setSelection(Math.min(idx, tabFolder.getItemCount()-1));
     }
     
     /**
@@ -111,22 +123,34 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
      * @param value
      */
     protected void updateURI(EndpointProperty p, Object value) {
-        String val = getPropertyFromUri(p);
-        if (val != null) {
-            selectedEP.setUri(selectedEP.getUri().replaceFirst(String.format("%s=%s", p.getName(), val), String.format("%s=%s", p.getName(), value.toString())));
+        if (p.getName().equals(EndpointPropertyModel.PROTOCOL_PROPERTY) && EndpointPropertiesUtils.isChoiceProperty(p)) {
+            String oldProtocol = getUsedProtocol();
+            if (oldProtocol.equalsIgnoreCase(value.toString()) == false) {
+                // protocol changed - update uri
+                selectedEP.setUri(selectedEP.getUri().replaceFirst(oldProtocol, value.toString()));
+            }
         } else {
-            String newUri = selectedEP.getUri();
-            if (selectedEP.getUri().indexOf('?') == -1) {
-                newUri += '?';
+            String val = getPropertyFromUri(p);
+            if (val != null) {
+                selectedEP.setUri(selectedEP.getUri().replaceFirst(String.format("%s=%s", p.getName(), val), String.format("%s=%s", p.getName(), value.toString())));
+            } else {
+                String newUri = selectedEP.getUri();
+                if (selectedEP.getUri().indexOf('?') == -1) {
+                    newUri += '?';
+                }
+                if (selectedEP.getUri().indexOf('=') != -1) {
+                    newUri += '&';
+                }
+                newUri += String.format("%s=%s", p.getName(), value.toString());
+                selectedEP.setUri(newUri);
             }
-            if (selectedEP.getUri().indexOf('=') != -1) {
-                newUri += '&';
-            }
-            newUri += String.format("%s=%s", p.getName(), value.toString());
-            selectedEP.setUri(newUri);
         }
     }
     
+    protected String getUsedProtocol() {
+        return selectedEP.getUri().substring(0, selectedEP.getUri().indexOf(':'));
+    }
+
     /**
      * 
      * @param props
@@ -182,35 +206,75 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                     }
                 });
                 txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+            } else if (EndpointPropertiesUtils.isChoiceProperty(prop)) {
+                CCombo choiceCombo = new CCombo(page, SWT.BORDER | SWT.FLAT | SWT.READ_ONLY | SWT.SINGLE);
+                toolkit.adapt(choiceCombo, true, true);
+                choiceCombo.setEditable(false);
+                choiceCombo.setItems(EndpointPropertiesUtils.getChoices(prop));
+                for (int i=0; i < choiceCombo.getItems().length; i++) {
+                    if (choiceCombo.getItem(i).equals(getUsedProtocol())) {
+                        choiceCombo.select(i);
+                        break;
+                    }
+                }
+                choiceCombo.addSelectionListener(new SelectionAdapter() {
+                    /* (non-Javadoc)
+                     * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+                     */
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        CCombo choice = (CCombo)e.getSource();
+                        updateURI(prop, choice.getText());
+                    }
+                });
+                choiceCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
             }
         }
     }
 
     private void createCommonsTab(CTabFolder folder) {
+        List<EndpointProperty> props = getPropertiesFor(EndpointPropertyKind.BOTH);
+
+        if (props.isEmpty()) return;
+        
+        commonTab = new CTabItem(tabFolder, SWT.NONE, 0);
+        commonTab.setText("General");
+
         Composite page = toolkit.createComposite(folder);
         page.setLayout(new GridLayout(3, false));
                 
-        List<EndpointProperty> props = getPropertiesFor(EndpointPropertyKind.BOTH);
         generateTabContents(props, page);
-        
+
         commonTab.setControl(page);
     }
 
     private void createConsumerTab(CTabFolder folder) {
+        List<EndpointProperty> props = getPropertiesFor(EndpointPropertyKind.CONSUMER);
+        
+        if (props.isEmpty()) return;
+        
+        consumerTab = new CTabItem(tabFolder, SWT.NONE, 1);
+        consumerTab.setText("Consumer");
+
         Composite page = toolkit.createComposite(folder);
         page.setLayout(new GridLayout(3, false));
                 
-        List<EndpointProperty> props = getPropertiesFor(EndpointPropertyKind.CONSUMER);
         generateTabContents(props, page);        
         
         consumerTab.setControl(page);
     }
 
     private void createProducerTab(CTabFolder folder) {
+        List<EndpointProperty> props = getPropertiesFor(EndpointPropertyKind.PRODUCER);
+        
+        if (props.isEmpty()) return;
+        
+        producerTab = new CTabItem(tabFolder, SWT.NONE, 2);
+        producerTab.setText("Producer");
+        
         Composite page = toolkit.createComposite(folder);
         page.setLayout(new GridLayout(3, false));
                 
-        List<EndpointProperty> props = getPropertiesFor(EndpointPropertyKind.PRODUCER);
         generateTabContents(props, page);
         
         producerTab.setControl(page);
@@ -239,7 +303,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
 
         Composite sbody = form.getBody();
 
-        tabFolder = new CTabFolder(sbody, SWT.BOTTOM | SWT.FLAT);
+        tabFolder = new CTabFolder(sbody, SWT.TOP | SWT.FLAT);
         toolkit.adapt(tabFolder, true, true);
         tabFolder.setLayoutData(new GridData(GridData.FILL_BOTH));
 
@@ -250,15 +314,6 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
 
         form.setText("Advanced Properties");
         toolkit.decorateFormHeading(form);
-
-        commonTab = new CTabItem(tabFolder, SWT.NONE, 0);
-        commonTab.setText("General");
-        
-        consumerTab = new CTabItem(tabFolder, SWT.NONE, 1);
-        consumerTab.setText("Consumer");
-
-        producerTab = new CTabItem(tabFolder, SWT.NONE, 2);
-        producerTab.setText("Producer");
         
         form.layout();
         tabFolder.setSelection(0);
