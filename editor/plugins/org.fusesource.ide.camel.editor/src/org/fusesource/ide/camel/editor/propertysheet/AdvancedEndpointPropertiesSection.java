@@ -28,6 +28,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPart;
@@ -156,7 +158,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
      * @param props
      * @param page
      */
-    protected void generateTabContents(List<EndpointProperty> props, Composite page) {
+    protected void generateTabContents(List<EndpointProperty> props, final Composite page) {
         for (EndpointProperty p : props) {
             final EndpointProperty prop = p;
             
@@ -177,6 +179,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                     }
                 });
                 checkBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+                
             } else if (EndpointPropertiesUtils.isTextProperty(prop)) {
                 Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
                 txtField.addModifyListener(new ModifyListener() {
@@ -187,6 +190,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                     }
                 });
                 txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+                
             } else if (EndpointPropertiesUtils.isNumberProperty(prop)) {
                 Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.RIGHT);
                 txtField.addModifyListener(new ModifyListener() {
@@ -206,6 +210,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                     }
                 });
                 txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+                
             } else if (EndpointPropertiesUtils.isChoiceProperty(prop)) {
                 CCombo choiceCombo = new CCombo(page, SWT.BORDER | SWT.FLAT | SWT.READ_ONLY | SWT.SINGLE);
                 toolkit.adapt(choiceCombo, true, true);
@@ -228,6 +233,71 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                     }
                 });
                 choiceCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+                
+            } else if (EndpointPropertiesUtils.isFileProperty(prop)) {
+                final Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
+                txtField.addModifyListener(new ModifyListener() {
+                    @Override
+                    public void modifyText(ModifyEvent e) {
+                        Text txt = (Text)e.getSource();
+                        updateURI(prop, txt.getText());
+                    }
+                });
+                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+                
+                Button btn_browse = toolkit.createButton(page, "...", SWT.BORDER | SWT.PUSH);
+                btn_browse.addSelectionListener(new SelectionAdapter() {
+                    /* (non-Javadoc)
+                     * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+                     */
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        FileDialog fd = new FileDialog(page.getShell());
+                        String fileName = fd.open();
+                        if (fileName != null) {
+                            txtField.setText(fileName);
+                        }
+                    }
+                });
+                btn_browse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+                
+            } else if (EndpointPropertiesUtils.isFolderProperty(prop)) {
+                final Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
+                txtField.addModifyListener(new ModifyListener() {
+                    @Override
+                    public void modifyText(ModifyEvent e) {
+                        Text txt = (Text)e.getSource();
+                        updateURI(prop, txt.getText());
+                    }
+                });
+                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+                
+                Button btn_browse = toolkit.createButton(page, "...", SWT.BORDER | SWT.PUSH);
+                btn_browse.addSelectionListener(new SelectionAdapter() {
+                    /* (non-Javadoc)
+                     * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+                     */
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        DirectoryDialog dd = new DirectoryDialog(page.getShell());
+                        String pathName = dd.open();
+                        if (pathName != null) {
+                            txtField.setText(pathName);
+                        }
+                    }
+                });
+                btn_browse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+
+            } else if (EndpointPropertiesUtils.isExpressionProperty(prop)) {
+                Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
+                txtField.addModifyListener(new ModifyListener() {
+                    @Override
+                    public void modifyText(ModifyEvent e) {
+                        Text txt = (Text)e.getSource();
+                        updateURI(prop, txt.getText());
+                    }
+                });
+                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
             }
         }
     }

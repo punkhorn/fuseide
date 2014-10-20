@@ -26,10 +26,67 @@ public final class EndpointPropertiesUtils {
     static {
         ArrayList<EndpointProperty> propertiesList = new ArrayList<EndpointProperty>();
         propertiesList.add(new EndpointProperty("autoCreate", "boolean", Boolean.TRUE.booleanValue(), EndpointPropertyKind.BOTH));
-        propertiesList.add(new EndpointProperty("recursive",  "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.CONSUMER));
         propertiesList.add(new EndpointProperty("bufferSize", "int", 128000, EndpointPropertyKind.BOTH));
+        propertiesList.add(new EndpointProperty("fileName", "java.io.File", null, EndpointPropertyKind.BOTH));
+        propertiesList.add(new EndpointProperty("flatten", "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.BOTH));
+        propertiesList.add(new EndpointProperty("charset", "java.lang.String", null, EndpointPropertyKind.BOTH));
+        propertiesList.add(new EndpointProperty("copyAndDeleteOnRenameFail", "boolean", Boolean.TRUE.booleanValue(), EndpointPropertyKind.BOTH));
+        propertiesList.add(new EndpointProperty("renameUsingCopy", "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.BOTH));
+        propertiesList.add(new EndpointProperty("initialDelay",  "long", 1000l, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("delay",  "long", 500l, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("useFixedDelay",  "boolean", Boolean.TRUE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("runLoggingLevel",  "choice[INFO, WARN, ERROR, TRACE]", "TRACE", EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("recursive",  "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("delete",  "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("noop",  "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("preMove",  "Expression", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("move",  "Expression", ".camel", EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("moveFailed",  "Expression", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("include",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("exclude",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("antInclude",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("antExclude",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("antFilterCaseSensitive",  "boolean", Boolean.TRUE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("idempotent",  "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("idempotentKey",  "Expression", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("idempotentRepository",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("inProgressRepository",  "java.lang.String", "memory", EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("filter",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("sorter",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("sortBy",  "Expression", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("readLock",  "java.lang.String", "markerFile", EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("readLockTimeout",  "long", 10000l, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("readLockCheckInterval",  "long", 1000l, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("readLockMinLength",  "int", 1, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("readLockLoggingLevel",  "choice[INFO, WARN, ERROR, TRACE]", "WARN", EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("readLockMarkerFile",  "boolean", Boolean.TRUE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("directoryMustExist",  "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("doneFileName",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("exclusiveReadLockStrategy",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("maxMessagesPerPoll",  "int", 0, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("eagerMaxMessagesPerPoll",  "boolean", Boolean.TRUE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("minDepth",  "int", 0, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("maxDepth",  "int", Integer.MAX_VALUE, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("processStrategy",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("startingDirectoryMustExist",  "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("pollStrategy",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("sendEmptyMessageWhenIdle",  "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("consumer.bridgeErrorHandler",  "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("scheduledExecutorService",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("scheduler",  "java.lang.String", null, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("backoffMultiplier",  "int", 0, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("backoffIdleThreshold",  "int", 0, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("backoffErrorThreshold",  "int", 0, EndpointPropertyKind.CONSUMER));
+        propertiesList.add(new EndpointProperty("fileExist", "choice[Override,Append,Fail,Ignore,Move,TryRename]", "Override", EndpointPropertyKind.PRODUCER));
+        propertiesList.add(new EndpointProperty("tempPrefix", "java.lang.String", null, EndpointPropertyKind.PRODUCER));
+        propertiesList.add(new EndpointProperty("tempFileName", "java.lang.String", null, EndpointPropertyKind.PRODUCER));
+        propertiesList.add(new EndpointProperty("moveExisting", "Expression", null, EndpointPropertyKind.PRODUCER));
+        propertiesList.add(new EndpointProperty("keepLastModified", "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.PRODUCER));
+        propertiesList.add(new EndpointProperty("eagerDeleteTargetFile", "boolean", Boolean.TRUE.booleanValue(), EndpointPropertyKind.PRODUCER));
+        propertiesList.add(new EndpointProperty("doneFileName", "java.lang.String", null, EndpointPropertyKind.PRODUCER));
+        propertiesList.add(new EndpointProperty("allowNullBody", "boolean", Boolean.FALSE.booleanValue(), EndpointPropertyKind.PRODUCER));
         propertiesList.add(new EndpointProperty("forceWrites", "boolean", Boolean.TRUE.booleanValue(), EndpointPropertyKind.PRODUCER));
-                
+        
         EndpointPropertyModel model = new EndpointPropertyModel("file");
         model.setProperties(propertiesList);
         knownPropertyModels.add(model);
@@ -90,6 +147,21 @@ public final class EndpointPropertiesUtils {
     
     public static boolean isChoiceProperty(EndpointProperty p) {
         return p.getType().toLowerCase().startsWith("choice[");
+    }
+    
+    public static boolean isFileProperty(EndpointProperty p) {
+        return  p.getType().equalsIgnoreCase("file") ||
+                p.getType().equalsIgnoreCase("java.io.file");
+    }
+    
+    public static boolean isFolderProperty(EndpointProperty p) {
+        return  p.getType().equalsIgnoreCase("folder") ||
+                p.getType().equalsIgnoreCase("path") || 
+                p.getType().equalsIgnoreCase("directory");
+    }
+    
+    public static boolean isExpressionProperty(EndpointProperty p) {
+        return  p.getType().equalsIgnoreCase("expression");
     }
     
     public static String[] getChoices(EndpointProperty p) {
