@@ -10,20 +10,21 @@
  ******************************************************************************/
 package org.fusesource.ide.camel.editor.propertysheet.model;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
 
 /**
  * @author lhein
  */
 @XmlRootElement(name = "prefix")
 public class CamelComponentProtocolPrefix {
+    
     private String prefix;
     
     /**
      * @return the prefix
      */
-    @XmlValue
+    @XmlAttribute(name = "name")
     public String getPrefix() {
         return this.prefix;
     }
