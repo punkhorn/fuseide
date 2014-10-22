@@ -24,7 +24,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class CamelComponent {
     
     private String componentClass;
-    private List<CamelComponentProtocolPrefix> prefixes;
+    private List<String> prefixes;
     private List<CamelComponentDependency> dependencies;
     private List<CamelComponentProperty> componentProperties;
     private List<CamelComponentUriParameter> camelComponentUriParameters;
@@ -49,14 +49,14 @@ public class CamelComponent {
      */
     @XmlElementWrapper(name = "prefixes")
     @XmlElement(name = "prefix")
-    public List<CamelComponentProtocolPrefix> getPrefixes() {
+    public List<String> getPrefixes() {
         return this.prefixes;
     }
     
     /**
      * @param prefixes the prefixes to set
      */
-    public void setPrefixes(List<CamelComponentProtocolPrefix> prefixes) {
+    public void setPrefixes(List<String> prefixes) {
         this.prefixes = prefixes;
     }
     
