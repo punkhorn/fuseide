@@ -13,7 +13,7 @@ package org.fusesource.ide.camel.editor.propertysheet.model;
 /**
  * @author lhein
  */
-public enum EndpointPropertyKind {
+public enum CamelComponentUriParameterKind {
     PRODUCER,
     CONSUMER,
     BOTH

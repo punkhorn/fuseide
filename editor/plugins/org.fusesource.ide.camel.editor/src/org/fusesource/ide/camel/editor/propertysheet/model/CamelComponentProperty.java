@@ -10,32 +10,26 @@
  ******************************************************************************/
 package org.fusesource.ide.camel.editor.propertysheet.model;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  * @author lhein
  */
-public class EndpointProperty {
+@XmlRootElement(name="property")
+public class CamelComponentProperty {
+    
     private String name;
     private String type;
-    
-    private String descriptionKey;
     private String label;
     private String description;
     private Object defaultValue;
-    private EndpointPropertyKind kind;
-    
-    /**
-     * 
-     */
-    public EndpointProperty(String name, String type, Object defaultValue, EndpointPropertyKind kind) {
-        this.name = name;
-        this.type = type;
-        this.defaultValue = defaultValue;
-        this.kind = kind;
-    }
+    private boolean mandatory;
     
     /**
      * @return the name
      */
+    @XmlAttribute(name = "name")
     public String getName() {
         return this.name;
     }
@@ -50,6 +44,7 @@ public class EndpointProperty {
     /**
      * @return the type
      */
+    @XmlAttribute(name = "type")
     public String getType() {
         return this.type;
     }
@@ -62,22 +57,9 @@ public class EndpointProperty {
     }
     
     /**
-     * @return the descriptionKey
-     */
-    public String getDescriptionKey() {
-        return this.descriptionKey;
-    }
-    
-    /**
-     * @param descriptionKey the descriptionKey to set
-     */
-    public void setDescriptionKey(String descriptionKey) {
-        this.descriptionKey = descriptionKey;
-    }
-    
-    /**
      * @return the label
      */
+    @XmlAttribute(name = "label")
     public String getLabel() {
         return this.label;
     }
@@ -92,6 +74,7 @@ public class EndpointProperty {
     /**
      * @return the description
      */
+    @XmlAttribute(name = "description")
     public String getDescription() {
         return this.description;
     }
@@ -106,6 +89,7 @@ public class EndpointProperty {
     /**
      * @return the defaultValue
      */
+    @XmlAttribute(name = "defaultValue")
     public Object getDefaultValue() {
         return this.defaultValue;
     }
@@ -118,16 +102,17 @@ public class EndpointProperty {
     }
     
     /**
-     * @return the kind
+     * @return the mandatory
      */
-    public EndpointPropertyKind getKind() {
-        return this.kind;
+    @XmlAttribute(name = "mandatory")
+    public boolean isMandatory() {
+        return this.mandatory;
     }
 
     /**
-     * @param kind the kind to set
+     * @param mandatory the mandatory to set
      */
-    public void setKind(EndpointPropertyKind kind) {
-        this.kind = kind;
+    public void setMandatory(boolean mandatory) {
+        this.mandatory = mandatory;
     }
 }
