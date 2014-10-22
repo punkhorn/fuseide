@@ -13,7 +13,6 @@ package org.fusesource.ide.camel.editor.propertysheet.model;
 import java.util.List;
 
 import org.fusesource.ide.camel.model.connectors.Connector;
-import org.fusesource.ide.camel.model.connectors.ConnectorProtocol;
 
 /**
  * @author lhein
@@ -36,27 +35,6 @@ public class EndpointPropertyModel {
     
     public EndpointPropertyModel(String protocol) {
         this.protocol = protocol;
-    }
-    
-    private String buildChoice() {
-        String result = "choice[";
-        
-        if (this.connector != null) {
-            boolean first = true;
-            for (ConnectorProtocol p : connector.getProtocols()) {
-                if (first) {
-                    first = false;
-                } else {
-                    result += ",";
-                }
-                result += p.getProtocol();
-            }        
-        } else {
-            result += getProtocol();
-        }
-        result += "]";
-        
-        return result;
     }
     
     /**
@@ -92,7 +70,7 @@ public class EndpointPropertyModel {
     public List<EndpointProperty> getProperties() {
         if (!hasProperty(PROTOCOL_PROPERTY)) {
             if (this.protocolProperty == null) {
-                this.protocolProperty = new EndpointProperty(PROTOCOL_PROPERTY, buildChoice(), null, EndpointPropertyKind.BOTH);
+                this.protocolProperty = new EndpointProperty(PROTOCOL_PROPERTY, EndpointPropertiesUtils.buildChoice(getConnector(), getProtocol()), null, EndpointPropertyKind.BOTH);
             }
             properties.add(0, protocolProperty);
         }

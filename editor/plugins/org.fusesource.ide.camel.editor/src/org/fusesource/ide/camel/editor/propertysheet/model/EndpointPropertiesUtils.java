@@ -10,18 +10,36 @@
  ******************************************************************************/
 package org.fusesource.ide.camel.editor.propertysheet.model;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.InputLocation;
+import org.apache.maven.model.Model;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.internal.project.registry.MavenProjectManager;
 import org.fusesource.ide.camel.editor.Activator;
+import org.fusesource.ide.camel.editor.editor.RiderDesignEditor;
+import org.fusesource.ide.camel.model.connectors.Connector;
 import org.fusesource.ide.camel.model.connectors.ConnectorModelFactory;
+import org.fusesource.ide.camel.model.connectors.ConnectorProtocol;
 
 /**
  * @author lhein
  */
 public final class EndpointPropertiesUtils {
 
-    private static final List<EndpointPropertyModel> knownPropertyModels = new ArrayList<EndpointPropertyModel>();
+    private static List<EndpointPropertyModel> knownPropertyModels = new ArrayList<EndpointPropertyModel>();
     
     static {
         ArrayList<EndpointProperty> propertiesList = new ArrayList<EndpointProperty>();
@@ -119,7 +137,14 @@ public final class EndpointPropertiesUtils {
             if ((model.getConnector() != null && model.getConnector().supportsProtocol(protocol)) ||
                 (model.getProtocol() != null && model.getProtocol().equalsIgnoreCase(protocol))) return model;    
         }
-        return null;
+        
+        // it seems we miss a model for the given protocol...lets try creating one on the fly
+        EndpointPropertyModel model = buildModelForProtocol(protocol);
+        if (model != null) {
+            knownPropertyModels.add(model);
+        }
+        
+        return model;
     }
     
     public static boolean isBooleanProperty(EndpointProperty p) {
@@ -168,4 +193,55 @@ public final class EndpointPropertiesUtils {
         String rawChoices = p.getType().substring(p.getType().indexOf('[')+1, p.getType().indexOf(']'));
         return rawChoices.split(",");
     }
+    
+    public static String buildChoice(Connector connector, String protocol) {
+        String result = "choice[";
+        
+        if (connector != null) {
+            boolean first = true;
+            for (ConnectorProtocol p : connector.getProtocols()) {
+                if (first) {
+                    first = false;
+                } else {
+                    result += ",";
+                }
+                result += p.getProtocol();
+            }        
+        } else {
+            result += protocol;
+        }
+        result += "]";
+        
+        return result;
+    }
+    
+    /**
+     * tries to build the model by parsing the camel configuration class annotations and elements
+     * 
+     * @param protocol
+     * @return
+     */
+    protected static EndpointPropertyModel buildModelForProtocol(String protocol) {
+        EndpointPropertyModel resModel = null;
+
+        IProject project = Activator.getDiagramEditor().getCamelContextFile().getProject();
+                
+        try {
+            IJavaProject javaProject = (IJavaProject)project.getNature(JavaCore.NATURE_ID);
+            IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
+            for(IClasspathEntry cpEntry : rawClasspath){
+                System.err.println("CP ENTRY: " + cpEntry.getPath().toOSString());
+            }
+        } catch (CoreException e) {
+            e.printStackTrace();
+        }
+        
+        
+        // search classpath for a file called like "protocol" value in a folder called /META-INF/services/org/apache/camel/component/
+        
+        // extract the value of key "class" from that property file
+    
+        return resModel;
+    }
+    
 }
