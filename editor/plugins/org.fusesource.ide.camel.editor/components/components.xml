@@ -1,0 +1,35 @@
+<components>
+	<component>
+		<class>org.apache.camel.mail.MailComponent</class>
+		<prefixes>
+			<prefix>imap</prefix>
+			<prefix>pop3</prefix>
+			<prefix>smtp</prefix>
+			<prefix>imaps</prefix>
+			<prefix>smtps</prefix>
+			...
+		</prefixes>
+		<dependencies>
+			<dependency>
+				<groupId>org.apache.camel</groupId>
+				<artifactId>camel-mail</artifactId>
+				<version>someVersion</version>
+			</dependency>
+		</dependencies>
+		<componentProperties>
+			<property name="recursive" type="boolean" defaultValue="true" mandatory="false" label="recursive" description=""/>
+		</componentProperties>
+		<uriParameters>
+			<parameter name="testBoolean" type="boolean" defaultValue="true" kind="[CONSUMER|PRODUCER|BOTH]" mandatory="false" label="recursive" description=""/>
+			<parameter name="testString"   type="java.lang.String" defaultValue="" kind="[CONSUMER|PRODUCER|BOTH]" mandatory="false" label="message" description=""/>
+			<parameter name="testNumber" type="java.lang.Long" defaultValue=0 kind="[CONSUMER|PRODUCER|BOTH]" mandatory="false" label="bla" descrdescription=""/>
+			<parameter name="testChoice"  type="choice[Warn, Info, Error, Trace]" defaultValue="Error" kind="[CONSUMER|PRODUCER|BOTH]" mandatory=iption=""/>
+			<parameter name="testExpression" type="Expression[xpath]" defaultValue="" kind="[CONSUMER|PRODUCER|BOTH]" mandatory="false" label="recursive" description=""/>
+			<parameter name="testFile" type="java.io.File" defaultValue="" kind="[CONSUMER|PRODUCER|BOTH]" mandatory="false" label="recursive" description=""/>
+			<parameter name="testFolder" type="Directory" defaultValue="" kind="[CONSUMER|PRODUCER|BOTH]" mandatory="false" label="recursive" description=""/>
+			<parameter name="testNewClassFromSuperClass" type="class[extends=<some super class>]" defaultValue="" kind="[CONSUMER|PRODUCER|BOTH]" mandatory="false" label="recursive" description=""/>
+			<parameter name="testNewClassFromInterface" type="class[implements=<some interface>]" defaultValue="" kind="[CONSUMER|PRODUCER|BOTH]" mandatory="false" label="recursive" description=""/>
+		</uriParameters>
+	</component>
+</components>
+

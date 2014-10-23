@@ -70,7 +70,7 @@ public class EndpointPropertyModel {
     public List<EndpointProperty> getProperties() {
         if (!hasProperty(PROTOCOL_PROPERTY)) {
             if (this.protocolProperty == null) {
-                this.protocolProperty = new EndpointProperty(PROTOCOL_PROPERTY, EndpointPropertiesUtils.buildChoice(getConnector(), getProtocol()), null, EndpointPropertyKind.BOTH);
+                this.protocolProperty = new EndpointProperty(PROTOCOL_PROPERTY, CamelComponentUtils.buildChoice(getConnector(), getProtocol()), null, EndpointPropertyKind.BOTH);
             }
             properties.add(0, protocolProperty);
         }

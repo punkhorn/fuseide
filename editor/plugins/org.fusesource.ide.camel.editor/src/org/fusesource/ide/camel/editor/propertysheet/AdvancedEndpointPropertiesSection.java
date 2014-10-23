@@ -40,10 +40,10 @@ import org.eclipse.ui.internal.forms.widgets.FormsResources;
 import org.eclipse.ui.views.properties.tabbed.AbstractPropertySection;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.fusesource.ide.camel.editor.AbstractNodes;
-import org.fusesource.ide.camel.editor.propertysheet.model.EndpointPropertiesUtils;
-import org.fusesource.ide.camel.editor.propertysheet.model.EndpointProperty;
-import org.fusesource.ide.camel.editor.propertysheet.model.EndpointPropertyKind;
-import org.fusesource.ide.camel.editor.propertysheet.model.EndpointPropertyModel;
+import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentModel;
+import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUriParameter;
+import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUriParameterKind;
+import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUtils;
 import org.fusesource.ide.camel.editor.utils.DiagramUtils;
 import org.fusesource.ide.camel.model.AbstractNode;
 import org.fusesource.ide.camel.model.Endpoint;
@@ -124,14 +124,14 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
      * @param p
      * @param value
      */
-    protected void updateURI(EndpointProperty p, Object value) {
-        if (p.getName().equals(EndpointPropertyModel.PROTOCOL_PROPERTY) && EndpointPropertiesUtils.isChoiceProperty(p)) {
-            String oldProtocol = getUsedProtocol();
-            if (oldProtocol.equalsIgnoreCase(value.toString()) == false) {
-                // protocol changed - update uri
-                selectedEP.setUri(selectedEP.getUri().replaceFirst(oldProtocol, value.toString()));
-            }
-        } else {
+    protected void updateURI(CamelComponentUriParameter p, Object value) {
+//        if (p.getName().equals(EndpointPropertyModel.PROTOCOL_PROPERTY) && CamelComponentUtils.isChoiceProperty(p)) {
+//            String oldProtocol = getUsedProtocol();
+//            if (oldProtocol.equalsIgnoreCase(value.toString()) == false) {
+//                // protocol changed - update uri
+//                selectedEP.setUri(selectedEP.getUri().replaceFirst(oldProtocol, value.toString()));
+//            }
+//        } else {
             String val = getPropertyFromUri(p);
             if (val != null) {
                 selectedEP.setUri(selectedEP.getUri().replaceFirst(String.format("%s=%s", p.getName(), val), String.format("%s=%s", p.getName(), value.toString())));
@@ -146,7 +146,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 newUri += String.format("%s=%s", p.getName(), value.toString());
                 selectedEP.setUri(newUri);
             }
-        }
+//        }
     }
     
     protected String getUsedProtocol() {
@@ -158,14 +158,14 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
      * @param props
      * @param page
      */
-    protected void generateTabContents(List<EndpointProperty> props, final Composite page) {
-        for (EndpointProperty p : props) {
-            final EndpointProperty prop = p;
+    protected void generateTabContents(List<CamelComponentUriParameter> props, final Composite page) {
+        for (CamelComponentUriParameter p : props) {
+            final CamelComponentUriParameter prop = p;
             
             Label l = toolkit.createLabel(page, p.getName());            
             l.setLayoutData(new GridData());
             
-            if (EndpointPropertiesUtils.isBooleanProperty(prop)) {
+            if (CamelComponentUtils.isBooleanProperty(prop)) {
                 Button checkBox = toolkit.createButton(page, "", SWT.CHECK | SWT.BORDER);
                 Boolean b = (Boolean)getTypedPropertyFromUri(prop);
                 checkBox.setSelection(b);
@@ -180,7 +180,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 });
                 checkBox.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
                 
-            } else if (EndpointPropertiesUtils.isTextProperty(prop)) {
+            } else if (CamelComponentUtils.isTextProperty(prop)) {
                 Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
@@ -191,7 +191,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 });
                 txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
                 
-            } else if (EndpointPropertiesUtils.isNumberProperty(prop)) {
+            } else if (CamelComponentUtils.isNumberProperty(prop)) {
                 Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.RIGHT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
@@ -211,11 +211,11 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 });
                 txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
                 
-            } else if (EndpointPropertiesUtils.isChoiceProperty(prop)) {
+            } else if (CamelComponentUtils.isChoiceProperty(prop)) {
                 CCombo choiceCombo = new CCombo(page, SWT.BORDER | SWT.FLAT | SWT.READ_ONLY | SWT.SINGLE);
                 toolkit.adapt(choiceCombo, true, true);
                 choiceCombo.setEditable(false);
-                choiceCombo.setItems(EndpointPropertiesUtils.getChoices(prop));
+                choiceCombo.setItems(CamelComponentUtils.getChoices(prop));
                 for (int i=0; i < choiceCombo.getItems().length; i++) {
                     if (choiceCombo.getItem(i).equals(getUsedProtocol())) {
                         choiceCombo.select(i);
@@ -234,7 +234,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 });
                 choiceCombo.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
                 
-            } else if (EndpointPropertiesUtils.isFileProperty(prop)) {
+            } else if (CamelComponentUtils.isFileProperty(prop)) {
                 final Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
@@ -261,7 +261,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 });
                 btn_browse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
                 
-            } else if (EndpointPropertiesUtils.isFolderProperty(prop)) {
+            } else if (CamelComponentUtils.isFolderProperty(prop)) {
                 final Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
@@ -288,7 +288,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 });
                 btn_browse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 
-            } else if (EndpointPropertiesUtils.isExpressionProperty(prop)) {
+            } else if (CamelComponentUtils.isExpressionProperty(prop)) {
                 Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
                 txtField.addModifyListener(new ModifyListener() {
                     @Override
@@ -303,7 +303,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
     }
 
     private void createCommonsTab(CTabFolder folder) {
-        List<EndpointProperty> props = getPropertiesFor(EndpointPropertyKind.BOTH);
+        List<CamelComponentUriParameter> props = getPropertiesFor(CamelComponentUriParameterKind.BOTH);
 
         if (props.isEmpty()) return;
         
@@ -319,7 +319,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
     }
 
     private void createConsumerTab(CTabFolder folder) {
-        List<EndpointProperty> props = getPropertiesFor(EndpointPropertyKind.CONSUMER);
+        List<CamelComponentUriParameter> props = getPropertiesFor(CamelComponentUriParameterKind.CONSUMER);
         
         if (props.isEmpty()) return;
         
@@ -335,7 +335,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
     }
 
     private void createProducerTab(CTabFolder folder) {
-        List<EndpointProperty> props = getPropertiesFor(EndpointPropertyKind.PRODUCER);
+        List<CamelComponentUriParameter> props = getPropertiesFor(CamelComponentUriParameterKind.PRODUCER);
         
         if (props.isEmpty()) return;
         
@@ -394,15 +394,15 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
      * @param kind
      * @return
      */
-    protected List<EndpointProperty> getPropertiesFor(EndpointPropertyKind kind) {
-        ArrayList<EndpointProperty> result = new ArrayList<EndpointProperty>();
+    protected List<CamelComponentUriParameter> getPropertiesFor(CamelComponentUriParameterKind kind) {
+        ArrayList<CamelComponentUriParameter> result = new ArrayList<CamelComponentUriParameter>();
 
         if (selectedEP != null && selectedEP.getUri() != null) {
             int protocolSeparatorIdx = selectedEP.getUri().indexOf(":");
             if (protocolSeparatorIdx != -1) {
-                EndpointPropertyModel model = EndpointPropertiesUtils.getPropertiesForEndpoint(selectedEP.getUri().substring(0, protocolSeparatorIdx));
+                CamelComponentModel model = CamelComponentUtils.getPropertiesForEndpoint(selectedEP.getUri().substring(0, protocolSeparatorIdx));
                 if (model != null) {
-                    for (EndpointProperty p : model.getProperties()) {
+                    for (CamelComponentUriParameter p : model.getProperties()) {
                         if (p.getKind().equals(kind)) {
                             result.add(p);
                         }
@@ -419,7 +419,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
      * @param p
      * @return
      */
-    protected String getPropertyFromUri(EndpointProperty p) {
+    protected String getPropertyFromUri(CamelComponentUriParameter p) {
         int idx = selectedEP.getUri().indexOf(p.getName() + "=");
         if (idx != -1) {
             return selectedEP.getUri().substring(idx + (p.getName() + "=").length(),
@@ -433,18 +433,18 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
      * @param p
      * @return
      */
-    protected Object getTypedPropertyFromUri(EndpointProperty p) {
+    protected Object getTypedPropertyFromUri(CamelComponentUriParameter p) {
         String val = getPropertyFromUri(p);
 
-        if (EndpointPropertiesUtils.isBooleanProperty(p)) {
+        if (CamelComponentUtils.isBooleanProperty(p)) {
             return Boolean.parseBoolean(val);
         }
 
-        if (EndpointPropertiesUtils.isTextProperty(p)) {
+        if (CamelComponentUtils.isTextProperty(p)) {
             return val;
         }
 
-        if (EndpointPropertiesUtils.isNumberProperty(p)) {
+        if (CamelComponentUtils.isNumberProperty(p)) {
             return val;
         }
 

@@ -12,7 +12,7 @@ package org.fusesource.ide.camel.editor.propertysheet;
 
 import org.eclipse.graphiti.ui.internal.parts.ContainerShapeEditPart;
 import org.eclipse.jface.viewers.IFilter;
-import org.fusesource.ide.camel.editor.propertysheet.model.EndpointPropertiesUtils;
+import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUtils;
 import org.fusesource.ide.camel.editor.propertysheet.model.EndpointPropertyModel;
 import org.fusesource.ide.camel.model.Endpoint;
 
@@ -30,7 +30,7 @@ public class AdvancedPropertiesFilter implements IFilter {
         if (ep != null) {
             int protocolSeparatorIdx = ep.getUri().indexOf(":");
             if (protocolSeparatorIdx != -1) {
-                EndpointPropertyModel model = EndpointPropertiesUtils.getPropertiesForEndpoint(ep.getUri().substring(0, protocolSeparatorIdx));    
+                EndpointPropertyModel model = CamelComponentUtils.getPropertiesForEndpoint(ep.getUri().substring(0, protocolSeparatorIdx));    
                 return model != null;
             }            
         }
