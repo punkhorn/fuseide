@@ -40,7 +40,7 @@ import org.eclipse.ui.internal.forms.widgets.FormsResources;
 import org.eclipse.ui.views.properties.tabbed.AbstractPropertySection;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.fusesource.ide.camel.editor.AbstractNodes;
-import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentModel;
+import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponent;
 import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUriParameter;
 import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUriParameterKind;
 import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUtils;
@@ -217,7 +217,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                 choiceCombo.setEditable(false);
                 choiceCombo.setItems(CamelComponentUtils.getChoices(prop));
                 for (int i=0; i < choiceCombo.getItems().length; i++) {
-                    if (choiceCombo.getItem(i).equals(getUsedProtocol())) {
+                    if (choiceCombo.getItem(i).equalsIgnoreCase(getPropertyFromUri(prop))) {
                         choiceCombo.select(i);
                         break;
                     }
@@ -307,7 +307,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
 
         if (props.isEmpty()) return;
         
-        commonTab = new CTabItem(tabFolder, SWT.NONE, 0);
+        commonTab = new CTabItem(tabFolder, SWT.NONE);
         commonTab.setText("General");
 
         Composite page = toolkit.createComposite(folder);
@@ -323,7 +323,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         
         if (props.isEmpty()) return;
         
-        consumerTab = new CTabItem(tabFolder, SWT.NONE, 1);
+        consumerTab = new CTabItem(tabFolder, SWT.NONE);
         consumerTab.setText("Consumer");
 
         Composite page = toolkit.createComposite(folder);
@@ -339,7 +339,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         
         if (props.isEmpty()) return;
         
-        producerTab = new CTabItem(tabFolder, SWT.NONE, 2);
+        producerTab = new CTabItem(tabFolder, SWT.NONE);
         producerTab.setText("Producer");
         
         Composite page = toolkit.createComposite(folder);
@@ -400,9 +400,9 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         if (selectedEP != null && selectedEP.getUri() != null) {
             int protocolSeparatorIdx = selectedEP.getUri().indexOf(":");
             if (protocolSeparatorIdx != -1) {
-                CamelComponentModel model = CamelComponentUtils.getPropertiesForEndpoint(selectedEP.getUri().substring(0, protocolSeparatorIdx));
-                if (model != null) {
-                    for (CamelComponentUriParameter p : model.getProperties()) {
+                CamelComponent componentModel = CamelComponentUtils.getUriParameters(selectedEP.getUri().substring(0, protocolSeparatorIdx));
+                if (componentModel != null) {
+                    for (CamelComponentUriParameter p : componentModel.getUriParameters()) {
                         if (p.getKind().equals(kind)) {
                             result.add(p);
                         }

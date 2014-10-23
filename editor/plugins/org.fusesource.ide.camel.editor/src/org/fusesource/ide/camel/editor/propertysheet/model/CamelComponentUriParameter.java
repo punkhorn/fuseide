@@ -33,6 +33,17 @@ public class CamelComponentUriParameter {
      * @param type
      * @param defaultValue
      * @param kind
+     */
+    public CamelComponentUriParameter(String name, String type, Object defaultValue, CamelComponentUriParameterKind kind) {
+        this(name, type, defaultValue, kind, false, "", "");
+    }
+    
+    /**
+     * 
+     * @param name
+     * @param type
+     * @param defaultValue
+     * @param kind
      * @param mandatory
      * @param label
      * @param description

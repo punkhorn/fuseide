@@ -154,7 +154,7 @@ public class FileBindingSection extends AbstractPropertySection {
         String oldValue = getPath(selectedEP.getUri());
         String newValue = getPath(path);
         if (oldValue.equals(newValue)) return;
-        selectedEP.setUri(selectedEP.getUri().replaceFirst(oldValue, newValue));
+        selectedEP.setUri(selectedEP.getUri().trim().equals("file:") ? selectedEP.getUri() + newValue : selectedEP.getUri().replaceFirst(oldValue, newValue));
     }
     
     /**

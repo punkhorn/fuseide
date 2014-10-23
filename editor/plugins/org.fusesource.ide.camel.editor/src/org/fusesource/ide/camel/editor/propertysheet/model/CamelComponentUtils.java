@@ -10,28 +10,17 @@
  ******************************************************************************/
 package org.fusesource.ide.camel.editor.propertysheet.model;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.List;
 
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.InputLocation;
-import org.apache.maven.model.Model;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.internal.project.registry.MavenProjectManager;
 import org.fusesource.ide.camel.editor.Activator;
-import org.fusesource.ide.camel.editor.editor.RiderDesignEditor;
 import org.fusesource.ide.camel.model.connectors.Connector;
-import org.fusesource.ide.camel.model.connectors.ConnectorModelFactory;
 import org.fusesource.ide.camel.model.connectors.ConnectorProtocol;
 
 /**
@@ -39,7 +28,7 @@ import org.fusesource.ide.camel.model.connectors.ConnectorProtocol;
  */
 public final class CamelComponentUtils {
 
-    private static List<CamelComponentModel> knownPropertyModels = new ArrayList<CamelComponentModel>();
+    private static List<CamelComponentModel> knownComponentsModels = new ArrayList<CamelComponentModel>();
     
     static {
         ArrayList<CamelComponentUriParameter> propertiesList = new ArrayList<CamelComponentUriParameter>();
@@ -105,9 +94,18 @@ public final class CamelComponentUtils {
         propertiesList.add(new CamelComponentUriParameter("allowNullBody", "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.PRODUCER));
         propertiesList.add(new CamelComponentUriParameter("forceWrites", "boolean", Boolean.TRUE.booleanValue(), CamelComponentUriParameterKind.PRODUCER));
         
-        CamelComponentModel model = new CamelComponentModel("file");
-        model.setProperties(propertiesList);
-        knownPropertyModels.add(model);
+        CamelComponent comp = new CamelComponent();
+        comp.setUriParameters(propertiesList);
+        comp.setComponentClass("org.apache.camel.core.file.FileComponent");
+        CamelComponentDependency dep = new CamelComponentDependency();
+        dep.setGroupId("org.apache.camel");
+        dep.setArtifactId("camel-core");
+        dep.setVersion(Activator.getDefault().getCamelVersion());
+        comp.setDependencies(Arrays.asList(dep));
+        comp.setPrefixes(Arrays.asList("file"));
+        CamelComponentModel model = new CamelComponentModel();
+        model.setComponents(Arrays.asList(comp));
+        knownComponentsModels.add(model);
      
         propertiesList = new ArrayList<CamelComponentUriParameter>();
         propertiesList.add(new CamelComponentUriParameter("location", "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
@@ -120,10 +118,19 @@ public final class CamelComponentUtils {
         propertiesList.add(new CamelComponentUriParameter("consumer.delay", "java.lang.Long", new Long(3600000), CamelComponentUriParameterKind.CONSUMER));
         propertiesList.add(new CamelComponentUriParameter("consumer.initialDelay", "java.lang.Long", new Long(1000), CamelComponentUriParameterKind.CONSUMER));
         propertiesList.add(new CamelComponentUriParameter("consumer.userFixedDelay", "boolean", false, CamelComponentUriParameterKind.CONSUMER));
-                
-        model = new CamelComponentModel(ConnectorModelFactory.getModelForVersion(Activator.getDefault().getCamelVersion()).getConnectorForComponent("weather"));
-        model.setProperties(propertiesList);
-        knownPropertyModels.add(model);
+        
+        comp = new CamelComponent();
+        comp.setUriParameters(propertiesList);
+        comp.setComponentClass("org.apache.camel.weather.WeatherComponent");
+        dep = new CamelComponentDependency();
+        dep.setGroupId("org.apache.camel");
+        dep.setArtifactId("camel-weather");
+        dep.setVersion(Activator.getDefault().getCamelVersion());
+        comp.setDependencies(Arrays.asList(dep));
+        comp.setPrefixes(Arrays.asList("weather"));
+        model = new CamelComponentModel();
+        model.setComponents(Arrays.asList(comp));
+        knownComponentsModels.add(model);
     }
     
     /**
@@ -132,19 +139,21 @@ public final class CamelComponentUtils {
      * @param protocol  the protocol to get the properties for
      * @return  the properties model or null if not available
      */
-    public static CamelComponentModel getPropertiesForEndpoint(String protocol) {
-        for (CamelComponentModel model : knownPropertyModels) {
-            if ((model.getConnector() != null && model.getConnector().supportsProtocol(protocol)) ||
-                (model.getProtocol() != null && model.getProtocol().equalsIgnoreCase(protocol))) return model;    
+    public static CamelComponent getUriParameters(String protocol) {
+        for (CamelComponentModel model : knownComponentsModels) {
+            for (CamelComponent comp : model.getComponents()) {
+                if (comp.getPrefixes().contains(protocol)) return comp;
+            }
         }
         
         // it seems we miss a model for the given protocol...lets try creating one on the fly
         CamelComponentModel model = buildModelForProtocol(protocol);
         if (model != null) {
-            knownPropertyModels.add(model);
+            knownComponentsModels.add(model);
+            return getUriParameters(protocol);
         }
         
-        return model;
+        return null;
     }
     
     public static boolean isBooleanProperty(CamelComponentUriParameter p) {
