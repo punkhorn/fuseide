@@ -30,7 +30,7 @@ public class AdvancedPropertiesFilter implements IFilter {
         if (ep != null) {
             int protocolSeparatorIdx = ep.getUri().indexOf(":");
             if (protocolSeparatorIdx != -1) {
-                CamelComponent model = CamelComponentUtils.getUriParameters(ep.getUri().substring(0, protocolSeparatorIdx));    
+                CamelComponent model = CamelComponentUtils.getComponentModel(ep.getUri().substring(0, protocolSeparatorIdx));    
                 return model != null;
             }            
         }

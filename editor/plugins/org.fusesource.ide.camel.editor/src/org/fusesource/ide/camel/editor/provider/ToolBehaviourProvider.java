@@ -12,7 +12,6 @@
 package org.fusesource.ide.camel.editor.provider;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -78,15 +77,14 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
 
     private static final String PALETTE_ENTRY_PROVIDER_EXT_POINT_ID = "org.fusesource.ide.editor.paletteContributor";
 
-    private static final ArrayList<String> IGNORED_CONNECTORS;
+    private static final ArrayList<String> CONNECTORS_WHITELIST;
     
     static {
-        IGNORED_CONNECTORS = new ArrayList<String>();
-        IGNORED_CONNECTORS.add("core");
-        IGNORED_CONNECTORS.add("mina");
-        IGNORED_CONNECTORS.add("xmlrpc");
+        CONNECTORS_WHITELIST = new ArrayList<String>();
+        CONNECTORS_WHITELIST.add("file");
+        CONNECTORS_WHITELIST.add("jms");
         
-        //IGNORED_CONNECTORS.add("");
+        //CONNECTORS_WHITELIST.add("");
     }
     
     /**
@@ -640,6 +638,6 @@ public class ToolBehaviourProvider extends DefaultToolBehaviorProvider {
      * @return
      */
     private boolean shouldBeIgnored(String connectorId) {
-       return IGNORED_CONNECTORS.contains(connectorId); 
+       return !CONNECTORS_WHITELIST.contains(connectorId); 
     }
 }

@@ -16,23 +16,23 @@ import javax.xml.bind.annotation.XmlValue;
 /**
  * @author lhein
  */
-@XmlRootElement(name = "protocol")
+@XmlRootElement(name = "prefix")
 public class ConnectorProtocol {
 	
-	private String protocol;
+	private String prefix;
 	
 	/**
-	 * @return the protocol
+	 * @return the prefix
 	 */
 	@XmlValue
-	public String getProtocol() {
-		return this.protocol;
+	public String getPrefix() {
+		return this.prefix;
 	}
 	
 	/**
-	 * @param protocol the protocol to set
+	 * @param prefix the prefix to set
 	 */
-	public void setProtocol(String protocol) {
-		this.protocol = protocol;
+	public void setPrefix(String prefix) {
+		this.prefix = prefix;
 	}
 }

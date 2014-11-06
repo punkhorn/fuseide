@@ -10,128 +10,47 @@
  ******************************************************************************/
 package org.fusesource.ide.camel.editor.propertysheet.model;
 
+import java.io.File;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+
+import org.apache.maven.artifact.Artifact;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.model.connectors.Connector;
+import org.fusesource.ide.camel.model.connectors.ConnectorModelFactory;
 import org.fusesource.ide.camel.model.connectors.ConnectorProtocol;
+import org.fusesource.ide.commons.util.JsonHelper;
+import org.jboss.dmr.ModelNode;
+import org.xml.sax.InputSource;
 
 /**
  * @author lhein
  */
 public final class CamelComponentUtils {
 
-    private static List<CamelComponentModel> knownComponentsModels = new ArrayList<CamelComponentModel>();
-    
-    static {
-        ArrayList<CamelComponentUriParameter> propertiesList = new ArrayList<CamelComponentUriParameter>();
-        propertiesList.add(new CamelComponentUriParameter("autoCreate", "boolean", Boolean.TRUE.booleanValue(), CamelComponentUriParameterKind.BOTH));
-        propertiesList.add(new CamelComponentUriParameter("bufferSize", "int", 128000, CamelComponentUriParameterKind.BOTH));
-        propertiesList.add(new CamelComponentUriParameter("fileName", "java.io.File", null, CamelComponentUriParameterKind.BOTH));
-        propertiesList.add(new CamelComponentUriParameter("flatten", "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.BOTH));
-        propertiesList.add(new CamelComponentUriParameter("charset", "java.lang.String", null, CamelComponentUriParameterKind.BOTH));
-        propertiesList.add(new CamelComponentUriParameter("copyAndDeleteOnRenameFail", "boolean", Boolean.TRUE.booleanValue(), CamelComponentUriParameterKind.BOTH));
-        propertiesList.add(new CamelComponentUriParameter("renameUsingCopy", "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.BOTH));
-        propertiesList.add(new CamelComponentUriParameter("initialDelay",  "long", 1000l, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("delay",  "long", 500l, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("useFixedDelay",  "boolean", Boolean.TRUE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("runLoggingLevel",  "choice[INFO, WARN, ERROR, TRACE]", "TRACE", CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("recursive",  "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("delete",  "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("noop",  "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("preMove",  "Expression", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("move",  "Expression", ".camel", CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("moveFailed",  "Expression", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("include",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("exclude",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("antInclude",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("antExclude",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("antFilterCaseSensitive",  "boolean", Boolean.TRUE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("idempotent",  "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("idempotentKey",  "Expression", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("idempotentRepository",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("inProgressRepository",  "java.lang.String", "memory", CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("filter",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("sorter",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("sortBy",  "Expression", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("readLock",  "java.lang.String", "markerFile", CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("readLockTimeout",  "long", 10000l, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("readLockCheckInterval",  "long", 1000l, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("readLockMinLength",  "int", 1, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("readLockLoggingLevel",  "choice[INFO, WARN, ERROR, TRACE]", "WARN", CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("readLockMarkerFile",  "boolean", Boolean.TRUE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("directoryMustExist",  "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("doneFileName",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("exclusiveReadLockStrategy",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("maxMessagesPerPoll",  "int", 0, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("eagerMaxMessagesPerPoll",  "boolean", Boolean.TRUE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("minDepth",  "int", 0, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("maxDepth",  "int", Integer.MAX_VALUE, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("processStrategy",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("startingDirectoryMustExist",  "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("pollStrategy",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("sendEmptyMessageWhenIdle",  "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("consumer.bridgeErrorHandler",  "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("scheduledExecutorService",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("scheduler",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("backoffMultiplier",  "int", 0, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("backoffIdleThreshold",  "int", 0, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("backoffErrorThreshold",  "int", 0, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("fileExist", "choice[Override,Append,Fail,Ignore,Move,TryRename]", "Override", CamelComponentUriParameterKind.PRODUCER));
-        propertiesList.add(new CamelComponentUriParameter("tempPrefix", "java.lang.String", null, CamelComponentUriParameterKind.PRODUCER));
-        propertiesList.add(new CamelComponentUriParameter("tempFileName", "java.lang.String", null, CamelComponentUriParameterKind.PRODUCER));
-        propertiesList.add(new CamelComponentUriParameter("moveExisting", "Expression", null, CamelComponentUriParameterKind.PRODUCER));
-        propertiesList.add(new CamelComponentUriParameter("keepLastModified", "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.PRODUCER));
-        propertiesList.add(new CamelComponentUriParameter("eagerDeleteTargetFile", "boolean", Boolean.TRUE.booleanValue(), CamelComponentUriParameterKind.PRODUCER));
-        propertiesList.add(new CamelComponentUriParameter("doneFileName", "java.lang.String", null, CamelComponentUriParameterKind.PRODUCER));
-        propertiesList.add(new CamelComponentUriParameter("allowNullBody", "boolean", Boolean.FALSE.booleanValue(), CamelComponentUriParameterKind.PRODUCER));
-        propertiesList.add(new CamelComponentUriParameter("forceWrites", "boolean", Boolean.TRUE.booleanValue(), CamelComponentUriParameterKind.PRODUCER));
-        
-        CamelComponent comp = new CamelComponent();
-        comp.setUriParameters(propertiesList);
-        comp.setComponentClass("org.apache.camel.core.file.FileComponent");
-        CamelComponentDependency dep = new CamelComponentDependency();
-        dep.setGroupId("org.apache.camel");
-        dep.setArtifactId("camel-core");
-        dep.setVersion(Activator.getDefault().getCamelVersion());
-        comp.setDependencies(Arrays.asList(dep));
-        comp.setPrefixes(Arrays.asList("file"));
-        CamelComponentModel model = new CamelComponentModel();
-        model.setComponents(Arrays.asList(comp));
-        knownComponentsModels.add(model);
-     
-        propertiesList = new ArrayList<CamelComponentUriParameter>();
-        propertiesList.add(new CamelComponentUriParameter("location", "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("lat",  "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("lon", "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("period", "java.lang.Integer", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("headerName", "java.lang.String", null, CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("mode", "choice[HTML,JSON,XML]", "JSON", CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("units", "choice[IMPERIAL,METRIC]", "METRIC", CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("consumer.delay", "java.lang.Long", new Long(3600000), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("consumer.initialDelay", "java.lang.Long", new Long(1000), CamelComponentUriParameterKind.CONSUMER));
-        propertiesList.add(new CamelComponentUriParameter("consumer.userFixedDelay", "boolean", false, CamelComponentUriParameterKind.CONSUMER));
-        
-        comp = new CamelComponent();
-        comp.setUriParameters(propertiesList);
-        comp.setComponentClass("org.apache.camel.weather.WeatherComponent");
-        dep = new CamelComponentDependency();
-        dep.setGroupId("org.apache.camel");
-        dep.setArtifactId("camel-weather");
-        dep.setVersion(Activator.getDefault().getCamelVersion());
-        comp.setDependencies(Arrays.asList(dep));
-        comp.setPrefixes(Arrays.asList("weather"));
-        model = new CamelComponentModel();
-        model.setComponents(Arrays.asList(comp));
-        knownComponentsModels.add(model);
-    }
+    private static final String CAMEL_COMPONENT_DESCRIPTOR_FILE_MASK = "META-INF/services/org/apache/camel/descriptors/%s.xml";
+    private static HashMap<String, CamelComponent> knownComponents = new HashMap<String, CamelComponent>();
     
     /**
      * returns the properties model for a given protocol
@@ -139,22 +58,23 @@ public final class CamelComponentUtils {
      * @param protocol  the protocol to get the properties for
      * @return  the properties model or null if not available
      */
-    public static CamelComponent getUriParameters(String protocol) {
-        for (CamelComponentModel model : knownComponentsModels) {
-            for (CamelComponent comp : model.getComponents()) {
-                if (comp.getPrefixes().contains(protocol)) return comp;
-            }
+    public static CamelComponent getComponentModel(String protocol) {
+        String componentClass = getComponentClass(protocol);
+        if (knownComponents.containsKey(componentClass)) {
+            return knownComponents.get(componentClass);
         }
         
         // it seems we miss a model for the given protocol...lets try creating one on the fly
-        CamelComponentModel model = buildModelForProtocol(protocol);
-        if (model != null) {
-            knownComponentsModels.add(model);
-            return getUriParameters(protocol);
+        CamelComponent c = buildModelForComponent(protocol, componentClass);
+        if (c != null) {
+            knownComponents.put(componentClass, c);
+            return getComponentModel(protocol);
         }
-        
+
         return null;
     }
+    
+    
     
     public static boolean isBooleanProperty(CamelComponentUriParameter p) {
         return  p.getType().equalsIgnoreCase("boolean") || 
@@ -164,6 +84,8 @@ public final class CamelComponentUtils {
     public static boolean isTextProperty(CamelComponentUriParameter p) {
         return  p.getType().equalsIgnoreCase("String") || 
                 p.getType().equalsIgnoreCase("java.lang.String") || 
+                p.getType().equalsIgnoreCase("java.net.URL") ||
+                p.getType().equalsIgnoreCase("java.net.URI") || 
                 p.getType().equalsIgnoreCase("Text");
     }
     
@@ -195,7 +117,13 @@ public final class CamelComponentUtils {
     }
     
     public static boolean isExpressionProperty(CamelComponentUriParameter p) {
-        return  p.getType().equalsIgnoreCase("expression");
+        return  p.getType().equalsIgnoreCase("expression") ||
+                p.getType().equalsIgnoreCase("org.apache.camel.Expression");
+    }
+    
+    public static boolean isListProperty(CamelComponentUriParameter p) {
+        return p.getType().equalsIgnoreCase("java.util.list") ||
+               p.getType().equalsIgnoreCase("java.util.collection"); 
     }
     
     public static String[] getChoices(CamelComponentUriParameter p) {
@@ -214,7 +142,7 @@ public final class CamelComponentUtils {
                 } else {
                     result += ",";
                 }
-                result += p.getProtocol();
+                result += p.getPrefix();
             }        
         } else {
             result += protocol;
@@ -225,32 +153,214 @@ public final class CamelComponentUtils {
     }
     
     /**
-     * tries to build the model by parsing the camel configuration class annotations and elements
+     * returns the component class for the given prefix
      * 
-     * @param protocol
-     * @return
+     * @param prefix
+     * @return  the class or null if not found
      */
-    protected static CamelComponentModel buildModelForProtocol(String protocol) {
-        CamelComponentModel resModel = null;
-
-        IProject project = Activator.getDiagramEditor().getCamelContextFile().getProject();
-                
-        try {
-            IJavaProject javaProject = (IJavaProject)project.getNature(JavaCore.NATURE_ID);
-            IClasspathEntry[] rawClasspath = javaProject.getRawClasspath();
-            for(IClasspathEntry cpEntry : rawClasspath){
-                System.err.println("CP ENTRY: " + cpEntry.getPath().toOSString());
+    protected static String getComponentClass(String prefix) {
+        String compClass = null;
+        
+        ArrayList<Connector> connectors = ConnectorModelFactory.getModelForVersion(Activator.getDefault().getCamelVersion()).getSupportedConnectors();
+        for (Connector c : connectors) {
+            if (c.supportsProtocol(prefix)) {
+                compClass = c.getComponentClass();
+                break;
             }
-        } catch (CoreException e) {
-            e.printStackTrace();
         }
         
+        return compClass;
+    }
+    
+    protected static CamelComponent buildModelForComponent(String protocol, String clazz) {
+        CamelComponent resModel = null;
+
+        // 1. try to lookup the model inside the camel component jar file
+        resModel = buildModelFromCamelComponentResource(protocol, clazz);
         
-        // search classpath for a file called like "protocol" value in a folder called /META-INF/services/org/apache/camel/component/
+        // 2. try to lookup the model in this bundle's resources
+        if (resModel == null) resModel = buildModelFromLocalResource(protocol, clazz);
         
-        // extract the value of key "class" from that property file
+        // 3. try to generate the model from json blob
+        if (resModel == null) resModel = buildModelFromJSON(protocol, clazz);
+        
+        return resModel;        
+    }
+    
+    /**
+     * tries to locate the component model file inside the camel component jar
+     * and build a model out of it
+     * 
+     * @param clazz
+     * @return
+     */
+    protected static CamelComponent buildModelFromCamelComponentResource(String protocol, String clazz) {
+        CamelComponent resModel = null;
+
+        try {
+            // 1. check for the correct dependency of the project which contains the camel component
+            IMavenProjectFacade m2facade = MavenPlugin.getMavenProjectRegistry().create(Activator.getDiagramEditor().getCamelContextFile().getProject(), new NullProgressMonitor());
+            Set<Artifact> deps = m2facade.getMavenProject(new NullProgressMonitor()).getArtifacts();
+            ZipFile zf = null;
+            for (Artifact dep : deps) {
+                zf = new ZipFile(dep.getFile());
+                if (zf.getEntry(String.format("META-INF/services/org/apache/camel/component/%s", protocol)) != null) {
+                    break;
+                }
+                zf = null;
+            }
+            
+            // 2. and then get the model file from that jar
+            if (zf != null) {
+                ZipEntry ze = zf.getEntry(String.format(CAMEL_COMPONENT_DESCRIPTOR_FILE_MASK, clazz));
+                if (ze != null) {
+                    // create JAXB context and instantiate marshaller
+                    JAXBContext context = JAXBContext.newInstance(CamelComponent.class, CamelComponentDependency.class, CamelComponentModel.class, CamelComponentProperty.class, CamelComponentUriParameter.class, CamelComponentUriParameterKind.class);
+                    Unmarshaller um = context.createUnmarshaller();
+                    CamelComponent model = (CamelComponent) um.unmarshal(new InputSource(zf.getInputStream(ze)));
+                    if (model != null) {
+                        return model;
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            Activator.getLogger().error(ex);
+        }
+        
+        return resModel;
+    }
+    
+    /**
+     * tries to locate the component model file inside this bundle
+     * and build a model out of it
+     * 
+     * @param clazz
+     * @return
+     */
+    protected static CamelComponent buildModelFromLocalResource(String protocol, String clazz) {
+        CamelComponent resModel = null;
+
+        URL modelFileURL = Activator.getDefault().getBundle().getEntry(String.format(CAMEL_COMPONENT_DESCRIPTOR_FILE_MASK, clazz));
+        if (modelFileURL != null) {
+            try {
+                // create JAXB context and instantiate marshaller
+                JAXBContext context = JAXBContext.newInstance(CamelComponent.class, CamelComponentDependency.class, CamelComponentModel.class, CamelComponentProperty.class, CamelComponentUriParameter.class, CamelComponentUriParameterKind.class);
+                Unmarshaller um = context.createUnmarshaller();
+                CamelComponent model = (CamelComponent) um.unmarshal(new InputSource(modelFileURL.openStream()));
+                if (model != null) {
+                    return model;
+                }
+            } catch (Exception ex) {
+                Activator.getLogger().error(ex);
+            }
+        }
+        
+        return resModel;
+    }
+    
+    /**
+     * tries to build the model by querying the component config of the camel component
+     * 
+     * @param clazz the component class
+     * @return
+     */
+    protected static CamelComponent buildModelFromJSON(String protocol, String clazz) {
+        CamelComponent resModel = null;
+
+        try {
+            URLClassLoader child = getProjectClassLoader();
+            Class classToLoad = child.loadClass(clazz);
+            Method method = classToLoad.getMethod("createComponentConfiguration");
+            Object instance = classToLoad.newInstance();
+            Object compConf = method.invoke(instance);
+            method = compConf.getClass().getMethod("createParameterJsonSchema");
+            Object oJSONBlob = method.invoke(compConf);
+            if (oJSONBlob != null && oJSONBlob instanceof String) {
+                System.err.println(oJSONBlob.toString());
+                resModel = buildModelFromJSonBlob((String)oJSONBlob, clazz);  
+                resModel.setPrefixes(Arrays.asList(protocol));
+                saveModel(resModel);
+            }
+        } catch (Exception ex) {
+            Activator.getLogger().error(ex);
+        }
     
         return resModel;
     }
     
+    private static void saveModel(CamelComponent component) {
+        try {
+            // create JAXB context and instantiate marshaller
+            JAXBContext context = JAXBContext.newInstance(CamelComponent.class, CamelComponentDependency.class, CamelComponentProperty.class, CamelComponentUriParameter.class, CamelComponentUriParameterKind.class);
+            Marshaller m = context.createMarshaller();
+            m.marshal(component, new File("/var/tmp/model.xml"));
+        } catch (Exception ex) {
+            Activator.getLogger().error(ex);
+        }
+    }
+    
+    public static URLClassLoader getProjectClassLoader() {
+        try {
+            IProject project = Activator.getDiagramEditor().getCamelContextFile().getProject();
+            IJavaProject javaProject = (IJavaProject)project.getNature(JavaCore.NATURE_ID);
+            IPackageFragmentRoot[] pfroots = javaProject.getAllPackageFragmentRoots();
+            ArrayList<URL> urls = new ArrayList<URL>();
+            for (IPackageFragmentRoot root : pfroots) {
+                URL rUrl = root.getPath().toFile().toURI().toURL();
+                urls.add(rUrl);
+            }
+            return new URLClassLoader(urls.toArray(new URL[urls.size()]), CamelComponentUtils.class.getClassLoader());
+        } catch (Exception ex) {
+            Activator.getLogger().error(ex);
+        }
+        return null;
+    }
+    
+    /**
+     * takes the json blob from camel configuration and makes a model from it
+     * 
+     * @param json
+     * @return
+     */
+    protected static CamelComponent buildModelFromJSonBlob(String json, String clazz) {
+        CamelComponent resModel = new CamelComponent();
+        resModel.setComponentClass(clazz);
+        
+        try {
+            ArrayList<CamelComponentUriParameter> uriParams = new ArrayList<CamelComponentUriParameter>();
+            ModelNode model = JsonHelper.getModelNode(json);
+            ModelNode propsNode = model.get("properties");
+            Map<String, Object> props = JsonHelper.getAsMap(propsNode);    
+            Iterator<String> it = props.keySet().iterator();
+            
+            while (it.hasNext()) {
+                String propName = it.next();
+                ModelNode valueNode = propsNode.get(propName);
+                String type = null;
+                if (valueNode.has("enum")) {
+                    type = "choice[";
+                    List<ModelNode> vals = JsonHelper.getAsList(valueNode, "enum");
+                    for (ModelNode mn : vals) {
+                        if (!type.equalsIgnoreCase("choice[")) {
+                            type += ",";
+                        }
+                        type += mn.asString();
+                    }
+                    type += "]";
+                } else {
+                    type = valueNode.get("type").asString();
+                }
+                
+                CamelComponentUriParameter param = new CamelComponentUriParameter(propName, type, null, CamelComponentUriParameterKind.BOTH);
+                uriParams.add(param);
+            }
+            
+            resModel.setUriParameters(uriParams);
+        } catch(Exception ex) {
+            Activator.getLogger().error(ex);
+            resModel = null;
+        }
+        
+        return resModel;
+    }
 }

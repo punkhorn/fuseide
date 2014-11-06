@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.fusesource.ide.camel.editor.propertysheet.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -24,15 +25,15 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class CamelComponent {
     
     private String componentClass;
-    private List<String> prefixes;
-    private List<CamelComponentDependency> dependencies;
-    private List<CamelComponentProperty> componentProperties;
-    private List<CamelComponentUriParameter> camelComponentUriParameters;
+    private List<String> prefixes = new ArrayList<String>();
+    private List<CamelComponentDependency> dependencies = new ArrayList<CamelComponentDependency>();
+    private List<CamelComponentProperty> componentProperties = new ArrayList<CamelComponentProperty>();
+    private List<CamelComponentUriParameter> camelComponentUriParameters = new ArrayList<CamelComponentUriParameter>();
     
     /**
      * @return the componentClass
      */
-    @XmlAttribute(name = "class")
+    @XmlElement(name = "class")
     public String getComponentClass() {
         return this.componentClass;
     }

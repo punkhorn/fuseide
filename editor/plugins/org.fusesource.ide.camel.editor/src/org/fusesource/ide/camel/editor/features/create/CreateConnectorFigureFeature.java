@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.maven.model.Dependency;
@@ -35,6 +36,7 @@ import org.fusesource.ide.camel.editor.editor.RiderDesignEditor;
 import org.fusesource.ide.camel.model.AbstractNode;
 import org.fusesource.ide.camel.model.Endpoint;
 import org.fusesource.ide.camel.model.connectors.Connector;
+import org.fusesource.ide.camel.model.connectors.ConnectorDependency;
 
 /**
  * @author lhein
@@ -52,7 +54,7 @@ public class CreateConnectorFigureFeature extends CreateFigureFeature<Endpoint> 
      */
     public CreateConnectorFigureFeature(IFeatureProvider fp, Connector connector) {
         super(fp, getDisplayText(connector.getId()), getDescription(connector.getId()), Endpoint.class);
-        this.endpoint = new Endpoint(String.format("%s:", connector.getProtocols().get(0).getProtocol())); // we use the first found protocol string
+        this.endpoint = new Endpoint(String.format("%s:", connector.getProtocols().get(0).getPrefix())); // we use the first found protocol string
         setExemplar(this.endpoint);
         this.connector = connector;
     }
@@ -143,27 +145,36 @@ public class CreateConnectorFigureFeature extends CreateFigureFeature<Endpoint> 
         final Model model = MavenPlugin.getMaven().readModel(pomFile);
 
         // then check if connector dependency is already a dep
-        boolean hasCamelConnectorDep = false;
+        ArrayList<ConnectorDependency> missingDeps = new ArrayList<ConnectorDependency>();
         List<Dependency> deps = model.getDependencies();
-        for (Dependency dep : deps) {
-            if (dep.getGroupId().equalsIgnoreCase(connector.getDependency().getGroupId()) &&
-                dep.getArtifactId().equalsIgnoreCase(connector.getDependency().getArtifactId())) {
-                // check for correct version
-                if (dep.getVersion().equalsIgnoreCase(connector.getDependency().getVersion()) == false) {
-                    // not the correct version - change it to fit
-                    dep.setVersion(connector.getDependency().getVersion());
+        for (ConnectorDependency conDep : connector.getDependencies()) {
+            boolean found = false;
+            for (Dependency pomDep : deps) {
+                if (pomDep.getGroupId().equalsIgnoreCase(conDep.getGroupId()) &&
+                    pomDep.getArtifactId().equalsIgnoreCase(conDep.getArtifactId())) {
+                    // check for correct version
+                    if (pomDep.getVersion().equalsIgnoreCase(conDep.getVersion()) == false) {
+                        // not the correct version - change it to fit
+                        pomDep.setVersion(conDep.getVersion());
+                    }
+                    found = true;
+                    break;
                 }
-                hasCamelConnectorDep = true;
-                break;
+            }
+            if (!found) {
+                missingDeps.add(conDep);
             }
         }
 
-        if (!hasCamelConnectorDep) {
+        for (ConnectorDependency missDep : missingDeps) {
             Dependency dep = new Dependency();
-            dep.setGroupId(connector.getDependency().getGroupId());
-            dep.setArtifactId(connector.getDependency().getArtifactId());
-            dep.setVersion(connector.getDependency().getVersion());
+            dep.setGroupId(missDep.getGroupId());
+            dep.setArtifactId(missDep.getArtifactId());
+            dep.setVersion(missDep.getVersion());
             model.addDependency(dep);
+        }
+        
+        if (missingDeps.size()>0) {
             OutputStream os = null;
             try {
                 os = new BufferedOutputStream(new FileOutputStream(pomFile));

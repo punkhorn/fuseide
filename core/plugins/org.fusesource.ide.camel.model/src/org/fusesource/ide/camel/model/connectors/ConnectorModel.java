@@ -25,7 +25,7 @@ import org.xml.sax.InputSource;
 /**
  * @author lhein
  */
-@XmlRootElement(name="connectors")
+@XmlRootElement(name="components")
 public class ConnectorModel {
 	
 	private ArrayList<Connector> supportedConnectors;
@@ -48,7 +48,7 @@ public class ConnectorModel {
 	/**
 	 * @return the supportedConnectors
 	 */
-	@XmlElement(name = "connector")
+	@XmlElement(name = "component")
 	public ArrayList<Connector> getSupportedConnectors() {
 		return this.supportedConnectors;
 	}
@@ -75,6 +75,19 @@ public class ConnectorModel {
 	        if (c.getId().equalsIgnoreCase(id)) return c;
 	    }
 	    return null;
+	}
+	
+	/**
+	 * looks up the connector which supports the given protocol prefix
+	 * 
+	 * @param protocol
+	 * @return
+	 */
+	public Connector getConnectorForProtocol(String protocol) {
+	    for (Connector c : supportedConnectors) {
+            if (c.supportsProtocol(protocol)) return c;
+        }
+        return null;
 	}
 	
 	/**

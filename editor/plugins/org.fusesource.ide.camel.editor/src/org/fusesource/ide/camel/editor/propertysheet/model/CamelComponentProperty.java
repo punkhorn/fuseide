@@ -23,7 +23,7 @@ public class CamelComponentProperty {
     private String type;
     private String label;
     private String description;
-    private Object defaultValue;
+    private String defaultValue;
     private boolean mandatory;
     
     /**
@@ -90,14 +90,14 @@ public class CamelComponentProperty {
      * @return the defaultValue
      */
     @XmlAttribute(name = "defaultValue")
-    public Object getDefaultValue() {
+    public String getDefaultValue() {
         return this.defaultValue;
     }
     
     /**
      * @param defaultValue the defaultValue to set
      */
-    public void setDefaultValue(Object defaultValue) {
+    public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
     }
     

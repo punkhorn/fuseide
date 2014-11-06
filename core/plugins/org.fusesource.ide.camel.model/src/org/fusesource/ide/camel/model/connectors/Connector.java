@@ -12,7 +12,6 @@ package org.fusesource.ide.camel.model.connectors;
 
 import java.util.ArrayList;
 
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -20,17 +19,33 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * @author lhein
  */
-@XmlRootElement(name = "connector")
+@XmlRootElement(name = "component")
 public class Connector {
 	
 	private String id;
+	private String componentClass;
 	private ArrayList<ConnectorProtocol> protocols;
-	private ConnectorDependency dependency;
+	private ArrayList<ConnectorDependency> dependencies;
+	
+	/**
+     * @return the componentClass
+     */
+	@XmlElement(name = "class")
+    public String getComponentClass() {
+        return this.componentClass;
+    }
+    
+    /**
+     * @param componentClass the componentClass to set
+     */
+    public void setComponentClass(String componentClass) {
+        this.componentClass = componentClass;
+    }
 	
 	/**
 	 * @return the id
 	 */
-	@XmlAttribute(name = "id")
+    @XmlElement(name = "id")
 	public String getId() {
 		return this.id;
 	}
@@ -45,8 +60,8 @@ public class Connector {
 	/**
 	 * @return the protocols
 	 */
-	@XmlElementWrapper(name = "protocols")
-	@XmlElement(name = "protocol")
+	@XmlElementWrapper(name = "prefixes")
+	@XmlElement(name = "prefix")
 	public ArrayList<ConnectorProtocol> getProtocols() {
 		return this.protocols;
 	}
@@ -61,16 +76,17 @@ public class Connector {
 	/**
 	 * @return the dependency
 	 */
+	@XmlElementWrapper(name = "dependencies")
 	@XmlElement(name = "dependency")
-	public ConnectorDependency getDependency() {
-		return this.dependency;
+	public ArrayList<ConnectorDependency> getDependencies() {
+		return this.dependencies;
 	}
 	
 	/**
 	 * @param dependency the dependency to set
 	 */
-	public void setDependency(ConnectorDependency dependency) {
-		this.dependency = dependency;
+	public void setDependencies(ArrayList<ConnectorDependency> dependencies) {
+		this.dependencies = dependencies;
 	}
 	
 	/**
@@ -81,7 +97,7 @@ public class Connector {
 	 */
 	public boolean supportsProtocol(String protocol) {
 	    for (ConnectorProtocol p : protocols) {
-	        if (p.getProtocol().equalsIgnoreCase(protocol)) return true;
+	        if (p.getPrefix().equalsIgnoreCase(protocol)) return true;
 	    }
 	    return false;
 	}

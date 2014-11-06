@@ -10,6 +10,7 @@
  ******************************************************************************/
 package org.fusesource.ide.camel.editor.propertysheet.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlElement;
@@ -19,7 +20,7 @@ import javax.xml.bind.annotation.XmlElementWrapper;
  * @author lhein
  */
 public class CamelComponentModel {
-    private List<CamelComponent> components;
+    private List<CamelComponent> components = new ArrayList<CamelComponent>();
     
     /**
      * @return the components
@@ -35,5 +36,12 @@ public class CamelComponentModel {
      */
     public void setComponents(List<CamelComponent> components) {
         this.components = components;
+    }
+    
+    public CamelComponent getComponent(String clazz) {
+        for (CamelComponent c : components) {
+            if (c.getComponentClass().equalsIgnoreCase(clazz)) return c;
+        }
+        return null;
     }
 }

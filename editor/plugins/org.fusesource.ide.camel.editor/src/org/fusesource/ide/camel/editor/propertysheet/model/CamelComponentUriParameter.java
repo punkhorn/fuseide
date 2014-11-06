@@ -23,9 +23,13 @@ public class CamelComponentUriParameter {
     private String type;
     private String label;
     private String description;
-    private Object defaultValue;
+    private String defaultValue;
     private CamelComponentUriParameterKind kind;
     private boolean mandatory;
+    
+    public CamelComponentUriParameter() {
+        
+    }
     
     /**
      * 
@@ -34,7 +38,7 @@ public class CamelComponentUriParameter {
      * @param defaultValue
      * @param kind
      */
-    public CamelComponentUriParameter(String name, String type, Object defaultValue, CamelComponentUriParameterKind kind) {
+    public CamelComponentUriParameter(String name, String type, String defaultValue, CamelComponentUriParameterKind kind) {
         this(name, type, defaultValue, kind, false, "", "");
     }
     
@@ -48,7 +52,7 @@ public class CamelComponentUriParameter {
      * @param label
      * @param description
      */
-    public CamelComponentUriParameter(String name, String type, Object defaultValue, CamelComponentUriParameterKind kind, boolean mandatory, String label, String description) {
+    public CamelComponentUriParameter(String name, String type, String defaultValue, CamelComponentUriParameterKind kind, boolean mandatory, String label, String description) {
         this.name = name;
         this.type = type;
         this.defaultValue = defaultValue;
@@ -122,14 +126,14 @@ public class CamelComponentUriParameter {
      * @return the defaultValue
      */
     @XmlAttribute(name = "defaultValue")
-    public Object getDefaultValue() {
+    public String getDefaultValue() {
         return this.defaultValue;
     }
     
     /**
      * @param defaultValue the defaultValue to set
      */
-    public void setDefaultValue(Object defaultValue) {
+    public void setDefaultValue(String defaultValue) {
         this.defaultValue = defaultValue;
     }
     

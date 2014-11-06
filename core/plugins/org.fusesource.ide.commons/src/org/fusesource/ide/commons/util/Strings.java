@@ -81,4 +81,24 @@ public class Strings {
 		}
 		return false;
 	}
+	
+	public static String humanize(String value) {
+	    String result = "";
+	    
+	    String cleanValue = value.trim();
+	    for (int i=0; i<cleanValue.length(); i++) {
+	        char c = cleanValue.charAt(i);
+	        if (Character.isUpperCase(c)) {
+	            result += " " + c;
+	        } else {
+	            if (i==0) {
+	                result += Character.toUpperCase(c);
+	            } else {
+	                result += cleanValue.charAt(i);
+	            }
+	        }
+	    }
+	    
+	    return result;
+	}
 }

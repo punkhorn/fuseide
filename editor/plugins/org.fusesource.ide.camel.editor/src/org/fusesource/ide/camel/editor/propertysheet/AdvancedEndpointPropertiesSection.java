@@ -10,11 +10,34 @@
  ******************************************************************************/
 package org.fusesource.ide.camel.editor.propertysheet;
 
+import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.draw2d.ColorConstants;
+import org.eclipse.jdt.core.IJavaElement;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.JavaConventions;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.internal.corext.util.JavaConventionsUtil;
+import org.eclipse.jdt.internal.ui.wizards.NewClassCreationWizard;
+import org.eclipse.jdt.ui.wizards.NewClassWizardPage;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.window.Window;
+import org.eclipse.jface.wizard.WizardDialog;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.CTabFolder;
@@ -33,6 +56,7 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.forms.IFormColors;
 import org.eclipse.ui.forms.widgets.Form;
 import org.eclipse.ui.forms.widgets.FormToolkit;
@@ -40,6 +64,7 @@ import org.eclipse.ui.internal.forms.widgets.FormsResources;
 import org.eclipse.ui.views.properties.tabbed.AbstractPropertySection;
 import org.eclipse.ui.views.properties.tabbed.TabbedPropertySheetPage;
 import org.fusesource.ide.camel.editor.AbstractNodes;
+import org.fusesource.ide.camel.editor.Activator;
 import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponent;
 import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUriParameter;
 import org.fusesource.ide.camel.editor.propertysheet.model.CamelComponentUriParameterKind;
@@ -48,6 +73,7 @@ import org.fusesource.ide.camel.editor.utils.DiagramUtils;
 import org.fusesource.ide.camel.model.AbstractNode;
 import org.fusesource.ide.camel.model.Endpoint;
 import org.fusesource.ide.commons.ui.Selections;
+import org.fusesource.ide.commons.util.Strings;
 
 /**
  * @author lhein
@@ -114,6 +140,8 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         createCommonsTab(tabFolder);
         createConsumerTab(tabFolder);
         createProducerTab(tabFolder);
+
+        tabFolder.setSingle(tabFolder.getItemCount()==1);
         
         tabFolder.setSelection(Math.min(idx, tabFolder.getItemCount()-1));
     }
@@ -159,10 +187,21 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
      * @param page
      */
     protected void generateTabContents(List<CamelComponentUriParameter> props, final Composite page) {
+        // display all the properties in alphabetic order - sorting needed
+        Collections.sort(props, new Comparator<CamelComponentUriParameter>() {
+            /* (non-Javadoc)
+             * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+             */
+            @Override
+            public int compare(CamelComponentUriParameter o1, CamelComponentUriParameter o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        }); 
+        
         for (CamelComponentUriParameter p : props) {
             final CamelComponentUriParameter prop = p;
             
-            Label l = toolkit.createLabel(page, p.getName());            
+            Label l = toolkit.createLabel(page, Strings.humanize(p.getName()));            
             l.setLayoutData(new GridData());
             
             if (CamelComponentUtils.isBooleanProperty(prop)) {
@@ -298,10 +337,136 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
                     }
                 });
                 txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+                
+            } else {
+                // must be some class as all other options were missed
+                final Text txtField = toolkit.createText(page, getPropertyFromUri(prop), SWT.SINGLE | SWT.BORDER | SWT.LEFT);
+                txtField.addModifyListener(new ModifyListener() {
+                    @Override
+                    public void modifyText(ModifyEvent e) {
+                        Text txt = (Text)e.getSource();
+                        updateURI(prop, txt.getText());
+                    }
+                });
+                txtField.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+                
+                Button btn_browse = toolkit.createButton(page, "...", SWT.BORDER | SWT.PUSH);
+                btn_browse.addSelectionListener(new SelectionAdapter() {
+                    /* (non-Javadoc)
+                     * @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
+                     */
+                    @Override
+                    public void widgetSelected(SelectionEvent e) {
+                        URLClassLoader child = CamelComponentUtils.getProjectClassLoader();
+                        Class classToLoad = null;
+                        try {
+                            classToLoad = child.loadClass(prop.getType());
+                        } catch (ClassNotFoundException ex) {
+                            Activator.getLogger().warning("Cannot find class " + prop.getType() + " on classpath.", ex);
+                            return;
+                        }
+                        
+                        IProject project = Activator.getDiagramEditor().getCamelContextFile().getProject();
+                        NewClassCreationWizard wiz = new NewClassCreationWizard();
+                        wiz.addPages();
+                        wiz.init(PlatformUI.getWorkbench(), null);
+                        NewClassWizardPage wp = (NewClassWizardPage)wiz.getStartingPage();
+                        WizardDialog wd = new WizardDialog(e.display.getActiveShell(), wiz);
+                        if (classToLoad.isInterface()) {
+                            wp.setSuperInterfaces(Arrays.asList(classToLoad.getName()), true);
+                        } else {
+                            wp.setSuperClass(classToLoad.getName(), true);
+                        }
+                        wp.setAddComments(true, true);
+                        IPackageFragmentRoot fragroot = null;
+                        try {
+                            IJavaProject javaProject = (IJavaProject)project.getNature(JavaCore.NATURE_ID);
+                            IMavenProjectFacade facade = MavenPlugin.getMavenProjectRegistry().create(project, new NullProgressMonitor());
+                            IPath[] paths = facade.getCompileSourceLocations();
+                            if (paths != null && paths.length>0) {
+                                for (IPath p :paths) {
+                                    if (p == null) continue; 
+                                    IResource res = project.findMember(p);
+                                    fragroot = javaProject.getPackageFragmentRoot(res);
+                                    break;
+                                }
+                                if (fragroot != null) wp.setPackageFragmentRoot(fragroot, true);   
+                                wp.setPackageFragment(getPackage(javaProject, fragroot), true);
+                            }
+                        } catch (Exception ex) {
+                            Activator.getLogger().error(ex);
+                        }
+                        if (Window.OK == wd.open()) {
+                            String value = wp.getCreatedType().getFullyQualifiedName();
+                            if (value != null) txtField.setText(value);
+                        }
+                    }
+                });
+                btn_browse.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
             }
         }
     }
+    
+    /**
+     * Checks if the package field has to be pre-filled in this page and returns the package
+     * fragment to be used for that. The package fragment has the name of the project if the source
+     * folder does not contain any package and if the project name is a valid package name. If the
+     * source folder contains exactly one package then the name of that package is used as the
+     * package fragment's name. <code>null</code> is returned if none of the above is applicable.
+     * 
+     * @param javaProject the containing Java project of the selection used to initialize this page
+     * 
+     * @return the package fragment to be pre-filled in this page or <code>null</code> if no
+     *         suitable package can be suggested for the given project
+     * 
+     * @since 3.9
+     */
+    private IPackageFragment getPackage(IJavaProject javaProject, final IPackageFragmentRoot pkgFragmentRoot) {
+        String packName= null;
+        IJavaElement[] packages= null;
+        try {
+            if (pkgFragmentRoot != null && pkgFragmentRoot.exists()) {
+                packages= pkgFragmentRoot.getChildren();
+                if (packages.length == 1) { // only default package -> use Project name
+                    packName= javaProject.getElementName();
+                    // validate package name
+                    IStatus status= validatePackageName(packName, javaProject);
+                    if (status.getSeverity() == IStatus.OK) {
+                        return pkgFragmentRoot.getPackageFragment(packName);
+                    }
+                } else {
+                    int noOfPackages= 0;
+                    IPackageFragment thePackage= null;
+                    for (final IJavaElement pack : packages) {
+                        IPackageFragment pkg= (IPackageFragment) pack;
+                        // ignoring empty parent packages and default package
+                        if ((!pkg.hasSubpackages() || pkg.hasChildren()) && !pkg.isDefaultPackage()) {
+                            noOfPackages++;
+                            thePackage= pkg;
+                            if (noOfPackages > 1) {
+                                return null;
+                            }
+                        }
+                    }
+                    if (noOfPackages == 1) { // use package name
+                        packName= thePackage.getElementName();
+                        return pkgFragmentRoot.getPackageFragment(packName);
+                    }
+                }
+            }
+        } catch (JavaModelException e) {
+            // fall through
+        }
+        return null;
+    }
 
+    private static IStatus validatePackageName(String text, IJavaProject project) {
+        if (project == null || !project.exists()) {
+            return JavaConventions.validatePackageName(text, JavaCore.VERSION_1_3, JavaCore.VERSION_1_3);
+        }
+        return JavaConventionsUtil.validatePackageName(text, project);
+    }
+        
     private void createCommonsTab(CTabFolder folder) {
         List<CamelComponentUriParameter> props = getPropertiesFor(CamelComponentUriParameterKind.BOTH);
 
@@ -400,7 +565,7 @@ public class AdvancedEndpointPropertiesSection extends AbstractPropertySection {
         if (selectedEP != null && selectedEP.getUri() != null) {
             int protocolSeparatorIdx = selectedEP.getUri().indexOf(":");
             if (protocolSeparatorIdx != -1) {
-                CamelComponent componentModel = CamelComponentUtils.getUriParameters(selectedEP.getUri().substring(0, protocolSeparatorIdx));
+                CamelComponent componentModel = CamelComponentUtils.getComponentModel(selectedEP.getUri().substring(0, protocolSeparatorIdx));
                 if (componentModel != null) {
                     for (CamelComponentUriParameter p : componentModel.getUriParameters()) {
                         if (p.getKind().equals(kind)) {
